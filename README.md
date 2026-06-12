@@ -1,47 +1,46 @@
-# InnovateTech - Startup Landing Page
+# Quarterly Goal Plan
 
-A modern, responsive landing page for a generic startup built with HTML, CSS, and JavaScript.
+A personal web app for planning a quarter around your long-term goals and scoring
+yourself week by week. Built with plain HTML, CSS, and JavaScript — no build step,
+no dependencies, no backend.
+
+## How the plan is structured
+
+- **Long-term vision** — the north-star statement everything else serves.
+- **Goal areas** — e.g. Healthy Lifestyle, Strong Relationships, Mental Toolkit,
+  Multiple Assets, Retire at 45, Multiple Languages. Each goal records *why it
+  matters* (your emotional connection to it).
+- **Weekly habits** — each goal has measurable habits with a weekly target
+  (e.g. Workout 7 days, Phone calls 2, Creative work 2 hours, Reading 30 minutes).
+- **Weekly scores** — each week you log what you actually did. A habit scores
+  `logged / target` (capped at 100%), a goal scores the average of its habits,
+  and the week scores the average of all goals.
 
 ## Features
 
-- **Responsive Design**: Fully responsive layout that works on all devices
-- **Modern UI**: Clean and contemporary design with gradient backgrounds
-- **Smooth Animations**: Scroll-based animations and hover effects
-- **Interactive Elements**: Mobile navigation, smooth scrolling, and form handling
-- **Performance Optimized**: Lightweight and fast-loading
+- **Dashboard** — quarter score, latest/best week, and per-goal averages at a glance.
+- **My Plan** — edit your vision, goal areas, whys, habits, and weekly targets.
+  Plan settings let you rename the quarter and change the number of weeks (default 13).
+- **Weekly Tracker** — pick a week, type in your numbers, and watch the goal and
+  week percentages update live. Scores save automatically as you type.
+- **Progress** — a bar chart of weekly scores across the quarter plus a full
+  color-coded score sheet (habits × weeks), with a Print / PDF button.
 
-## Sections
+## Data
 
-1. **Hero Section**: Eye-catching header with call-to-action buttons
-2. **Features**: Six feature cards highlighting key benefits
-3. **About**: Company information with animated statistics
-4. **CTA**: Email capture form with free trial offer
-5. **Footer**: Complete navigation and company links
+Everything is stored in your browser's `localStorage` — nothing leaves your machine.
 
-## Technologies Used
+- **Export JSON** downloads a backup of the whole plan.
+- **Import JSON** restores a backup (or moves your plan to another browser/device).
+- **Reset to starter plan** restores the seeded plan and Week 1 scores.
 
-- HTML5
-- CSS3 (with CSS Grid and Flexbox)
-- Vanilla JavaScript
-- No external dependencies
+## Running it
 
-## Usage
+Open `index.html` directly in a browser, or serve the folder:
 
-Simply open `index.html` in a web browser to view the landing page.
+```sh
+python3 -m http.server 8000
+# then visit http://localhost:8000
+```
 
-## Customization
-
-- **Colors**: Modify CSS variables in `styles.css` (`:root` section)
-- **Content**: Update text in `index.html`
-- **Animations**: Adjust timing in `script.js` and `styles.css`
-
-## Browser Support
-
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
-
-## License
-
-MIT License - feel free to use this template for your projects!
+It also works as-is on any static host (GitHub Pages, Netlify, etc.).
