@@ -54,6 +54,30 @@ enum SharedContainer {
         let decoder = JSONDecoder()
         return try decoder.decode(Plan.self, from: data)
     }
+
+    // MARK: - Quarter Archives
+
+    /// Archive file URL for a quarter, e.g. "Q2 2026" → plan-archive-Q2-2026.json
+    static func archiveFileURL(for quarter: String) -> URL? {
+        let slug = quarter.replacingOccurrences(of: " ", with: "-")
+        return containerURL?.appendingPathComponent("plan-archive-\(slug).json")
+    }
+
+    /// Archive a completed quarter's plan to a quarter-stamped file
+    static func archivePlan(_ plan: Plan) throws {
+        guard let fileURL = archiveFileURL(for: plan.quarter) else {
+            throw SharedContainerError.containerNotFound
+        }
+        let data = try exportPlan(plan)
+        try data.write(to: fileURL, options: [.atomic])
+    }
+
+    /// Load an archived plan for a given quarter, if one exists
+    static func loadArchivedPlan(quarter: String) -> Plan? {
+        guard let fileURL = archiveFileURL(for: quarter),
+              let data = try? Data(contentsOf: fileURL) else { return nil }
+        return try? JSONDecoder().decode(Plan.self, from: data)
+    }
 }
 
 enum SharedContainerError: LocalizedError {

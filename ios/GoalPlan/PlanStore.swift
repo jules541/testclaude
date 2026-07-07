@@ -31,6 +31,23 @@ final class PlanStore {
             self.plan = Plan.defaultPlan()
             savePlan()  // Save default plan immediately
         }
+
+        rollOverIfNeeded()
+    }
+
+    // MARK: - Quarter Rollover
+
+    /// Archive the finished quarter and start fresh when the calendar quarter changes.
+    /// Scores are only cleared if the archive write succeeds, so data is never lost.
+    /// Call on launch and whenever the app returns to the foreground.
+    func rollOverIfNeeded() {
+        guard plan.needsRollover else { return }
+        do {
+            try SharedContainer.archivePlan(plan)
+            plan = plan.rolledOver(to: Scoring.currentQuarterString())
+        } catch {
+            print("Quarter rollover skipped — archiving \(plan.quarter) failed: \(error)")
+        }
     }
 
     // MARK: - Persistence

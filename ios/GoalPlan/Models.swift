@@ -135,6 +135,21 @@ extension Goal {
 }
 
 extension Plan {
+    /// True when the stored quarter no longer matches the calendar quarter,
+    /// meaning scores belong to a previous quarter and must not be overwritten
+    var needsRollover: Bool {
+        quarter != Scoring.currentQuarterString()
+    }
+
+    /// A copy of this plan rolled over to a new quarter:
+    /// goals and vision carry forward, scores start fresh
+    func rolledOver(to newQuarter: String) -> Plan {
+        var next = self
+        next.quarter = newQuarter
+        next.scores = [:]
+        return next
+    }
+
     /// Get today's goals (all habits with optional daily targets for today)
     func todayGoals() -> [(habit: Habit, dailyGoal: DailyGoal?)] {
         // For now, return all habits (daily filtering will be added later)

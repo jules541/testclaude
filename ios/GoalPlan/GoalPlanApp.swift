@@ -5,6 +5,7 @@ struct GoalPlanApp: App {
 
     @State private var store = PlanStore()
     @State private var showOnboarding = !OnboardingManager.hasCompleted
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
@@ -16,6 +17,11 @@ struct GoalPlanApp: App {
             } else {
                 RootTabView()
                     .environment(store)
+            }
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                store.rollOverIfNeeded()
             }
         }
     }
