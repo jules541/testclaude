@@ -1,50 +1,235 @@
 import WidgetKit
 import SwiftUI
 
+// MARK: - Widget Bundle (extension entry point)
+
+@main
+struct GoalPlanWidgetBundle: WidgetBundle {
+    var body: some Widget {
+        GoalPlanWidget()
+    }
+}
+
+// MARK: - Widget
+
 struct GoalPlanWidget: Widget {
     let kind: String = "GoalPlanWidget"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             GoalPlanWidgetEntryView(entry: entry)
+                .containerBackground(.background, for: .widget)
         }
         .configurationDisplayName("Goal Plan")
         .description("Track your quarterly goals")
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryCircular])
     }
 }
+
+// MARK: - Timeline Entry
+
+struct GoalPlanEntry: TimelineEntry {
+    let date: Date
+    let quarterName: String
+    let currentWeek: Int
+    let weekPct: Double?
+    let quarterPct: Double?
+    let streak: Int
+
+    static let placeholder = GoalPlanEntry(
+        date: .now,
+        quarterName: "Q3 2026",
+        currentWeek: 1,
+        weekPct: 0.62,
+        quarterPct: 0.74,
+        streak: 3
+    )
+}
+
+// MARK: - Provider
 
 struct Provider: TimelineProvider {
-    func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date())
+    func placeholder(in context: Context) -> GoalPlanEntry {
+        .placeholder
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
-        let entry = SimpleEntry(date: Date())
-        completion(entry)
+    func getSnapshot(in context: Context, completion: @escaping (GoalPlanEntry) -> Void) {
+        completion(loadEntry())
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
-        let entry = SimpleEntry(date: Date())
-        let timeline = Timeline(entries: [entry], policy: .atEnd)
-        completion(timeline)
+    func getTimeline(in context: Context, completion: @escaping (Timeline<GoalPlanEntry>) -> Void) {
+        // Refresh at midnight so week boundaries roll over; data changes
+        // arrive sooner via reloadAllTimelines() from the app on every save
+        let now = Date()
+        let startOfToday = Calendar.current.startOfDay(for: now)
+        let nextMidnight = Calendar.current.date(byAdding: .day, value: 1, to: startOfToday)
+            ?? now.addingTimeInterval(24 * 60 * 60)
+
+        completion(Timeline(entries: [loadEntry(now: now)], policy: .after(nextMidnight)))
+    }
+
+    private func loadEntry(now: Date = Date()) -> GoalPlanEntry {
+        guard let plan = SharedContainer.loadPlan() else { return .placeholder }
+
+        let week = Scoring.currentWeekOfQuarter(now: now)
+        return GoalPlanEntry(
+            date: now,
+            quarterName: plan.quarter,
+            currentWeek: week,
+            weekPct: Scoring.weekPct(plan: plan, week: week),
+            quarterPct: Scoring.quarterPct(plan: plan),
+            streak: Streaks.weeklyStreak(plan: plan)
+        )
     }
 }
 
-struct SimpleEntry: TimelineEntry {
-    let date: Date
+// MARK: - Brand Colors
+// Mirror AppTheme.Colors (the app's theme files are not compiled into this target)
+
+private extension Color {
+    static let brandGreen = Color(red: 0x2F / 255, green: 0x6F / 255, blue: 0x5E / 255)
+    static let brandGold = Color(red: 0xD9 / 255, green: 0xA4 / 255, blue: 0x41 / 255)
 }
 
-struct GoalPlanWidgetEntryView : View {
-    var entry: Provider.Entry
+// MARK: - Entry View
+
+struct GoalPlanWidgetEntryView: View {
+    @Environment(\.widgetFamily) private var family
+    var entry: GoalPlanEntry
 
     var body: some View {
-        Text("Goal Plan")
-            .font(.headline)
+        switch family {
+        case .accessoryCircular:
+            CircularAccessoryView(entry: entry)
+        case .systemMedium:
+            MediumWidgetView(entry: entry)
+        default:
+            SmallWidgetView(entry: entry)
+        }
     }
 }
 
-#Preview(as: .systemSmall) {
+// MARK: - Progress Ring
+
+struct ProgressRing: View {
+    let pct: Double?
+    var lineWidth: CGFloat = 9
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Color.brandGreen.opacity(0.15), lineWidth: lineWidth)
+            Circle()
+                .trim(from: 0, to: pct ?? 0)
+                .stroke(
+                    LinearGradient(
+                        colors: [.brandGreen, .brandGold],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
+                )
+                .rotationEffect(.degrees(-90))
+        }
+    }
+}
+
+// MARK: - Small Widget
+
+struct SmallWidgetView: View {
+    let entry: GoalPlanEntry
+
+    var body: some View {
+        ZStack {
+            ProgressRing(pct: entry.weekPct)
+            VStack(spacing: 2) {
+                Text(Scoring.formatPct(entry.weekPct))
+                    .font(.title2.bold())
+                    .foregroundStyle(Color.brandGreen)
+                Text("Week \(entry.currentWeek)")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(6)
+    }
+}
+
+// MARK: - Medium Widget
+
+struct MediumWidgetView: View {
+    let entry: GoalPlanEntry
+
+    var body: some View {
+        HStack(spacing: 16) {
+            ZStack {
+                ProgressRing(pct: entry.weekPct)
+                VStack(spacing: 2) {
+                    Text(Scoring.formatPct(entry.weekPct))
+                        .font(.headline.bold())
+                        .foregroundStyle(Color.brandGreen)
+                    Text("Week \(entry.currentWeek)")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(maxHeight: .infinity)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(entry.quarterName)
+                    .font(.headline)
+
+                HStack(spacing: 4) {
+                    Image(systemName: "chart.bar.fill")
+                        .font(.caption)
+                        .foregroundStyle(Color.brandGreen)
+                    Text("Quarter avg: \(Scoring.formatPct(entry.quarterPct))")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
+                if entry.streak > 0 {
+                    HStack(spacing: 4) {
+                        Image(systemName: "flame.fill")
+                            .font(.caption)
+                            .foregroundStyle(Color.brandGold)
+                        Text("\(entry.streak) week streak")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(4)
+    }
+}
+
+// MARK: - Lock Screen Circular
+
+struct CircularAccessoryView: View {
+    let entry: GoalPlanEntry
+
+    var body: some View {
+        Gauge(value: entry.weekPct ?? 0) {
+            Text("W\(entry.currentWeek)")
+        } currentValueLabel: {
+            Text(Scoring.formatPct(entry.weekPct))
+        }
+        .gaugeStyle(.accessoryCircular)
+    }
+}
+
+// MARK: - Previews
+
+#Preview("Small", as: .systemSmall) {
     GoalPlanWidget()
 } timeline: {
-    SimpleEntry(date: .now)
+    GoalPlanEntry.placeholder
+}
+
+#Preview("Medium", as: .systemMedium) {
+    GoalPlanWidget()
+} timeline: {
+    GoalPlanEntry.placeholder
 }
