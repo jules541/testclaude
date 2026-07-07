@@ -4,7 +4,7 @@ struct QuarterProgressView: View {
     @Bindable var store: PlanStore
 
     private var currentWeek: Int {
-        Scoring.currentWeekOfQuarter()
+        Scoring.currentWeekOfQuarter(maxWeek: store.plan.weeksInQuarter)
     }
 
     private var quarterName: String {

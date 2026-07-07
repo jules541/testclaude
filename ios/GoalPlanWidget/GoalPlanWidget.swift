@@ -71,7 +71,7 @@ struct Provider: TimelineProvider {
     private func loadEntry(now: Date = Date()) -> GoalPlanEntry {
         guard let plan = SharedContainer.loadPlan() else { return .placeholder }
 
-        let week = Scoring.currentWeekOfQuarter(now: now)
+        let week = Scoring.currentWeekOfQuarter(now: now, maxWeek: plan.weeksInQuarter)
         return GoalPlanEntry(
             date: now,
             quarterName: plan.quarter,

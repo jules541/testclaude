@@ -1,5 +1,6 @@
 import Foundation
 import UserNotifications
+import os
 
 /// Manages local notifications for habit reminders
 @Observable
@@ -7,11 +8,14 @@ final class NotificationManager {
 
     static let shared = NotificationManager()
 
+    private static let logger = Logger(subsystem: "com.goalplan.GoalPlan", category: "notifications")
+
     // MARK: - Settings (persisted in UserDefaults)
 
     var morningFocusEnabled: Bool {
         didSet {
             UserDefaults.standard.set(morningFocusEnabled, forKey: "morningFocusEnabled")
+            if morningFocusEnabled { requestAuthorizationIfNeeded() }
             updateMorningFocus()
         }
     }
@@ -26,6 +30,7 @@ final class NotificationManager {
     var eveningReminderEnabled: Bool {
         didSet {
             UserDefaults.standard.set(eveningReminderEnabled, forKey: "eveningReminderEnabled")
+            if eveningReminderEnabled { requestAuthorizationIfNeeded() }
             updateEveningReminder()
         }
     }
@@ -40,6 +45,7 @@ final class NotificationManager {
     var weeklySummaryEnabled: Bool {
         didSet {
             UserDefaults.standard.set(weeklySummaryEnabled, forKey: "weeklySummaryEnabled")
+            if weeklySummaryEnabled { requestAuthorizationIfNeeded() }
             updateWeeklySummary()
         }
     }
@@ -100,9 +106,15 @@ final class NotificationManager {
 
             return granted
         } catch {
-            print("Notification authorization error: \(error)")
+            Self.logger.error("Notification authorization error: \(error)")
             return false
         }
+    }
+
+    /// Request permission the first time a reminder is switched on
+    private func requestAuthorizationIfNeeded() {
+        guard !isAuthorized else { return }
+        Task { _ = await requestAuthorization() }
     }
 
     func checkAuthorizationStatus() {
@@ -149,7 +161,7 @@ final class NotificationManager {
 
         center.add(request) { error in
             if let error = error {
-                print("Failed to schedule morning focus: \(error)")
+                Self.logger.error("Failed to schedule morning focus: \(error)")
             }
         }
     }
@@ -167,7 +179,7 @@ final class NotificationManager {
     private func getBehindHabits() -> [String] {
         guard let plan = SharedContainer.loadPlan() else { return [] }
 
-        let currentWeek = Scoring.currentWeekOfQuarter()
+        let currentWeek = Scoring.currentWeekOfQuarter(maxWeek: plan.weeksInQuarter)
         let weekScores = plan.scores[String(currentWeek)] ?? [:]
 
         var behindHabits: [String] = []
@@ -178,7 +190,7 @@ final class NotificationManager {
                 let percentage = habit.target > 0 ? current / habit.target : 0
 
                 if percentage < 0.5 {
-                    let progress = "\(Int(current))/\(Int(habit.target))"
+                    let progress = "\(formatValue(current))/\(formatValue(habit.target))"
                     behindHabits.append("\(habit.name) (\(progress))")
                 }
             }
@@ -186,6 +198,13 @@ final class NotificationManager {
 
         // Return top 3 behind habits
         return Array(behindHabits.prefix(3))
+    }
+
+    /// Format a habit value without truncating fractional progress (0.5 stays "0.5")
+    private func formatValue(_ value: Double) -> String {
+        value.truncatingRemainder(dividingBy: 1) == 0
+            ? String(Int(value))
+            : String(value)
     }
 
     // MARK: - Evening Reminder Notification
@@ -213,7 +232,7 @@ final class NotificationManager {
 
         center.add(request) { error in
             if let error = error {
-                print("Failed to schedule evening reminder: \(error)")
+                Self.logger.error("Failed to schedule evening reminder: \(error)")
             }
         }
     }
@@ -249,7 +268,7 @@ final class NotificationManager {
 
         center.add(request) { error in
             if let error = error {
-                print("Failed to schedule weekly summary: \(error)")
+                Self.logger.error("Failed to schedule weekly summary: \(error)")
             }
         }
     }
@@ -268,7 +287,7 @@ final class NotificationManager {
             return "See how you did this week!"
         }
 
-        let currentWeek = Scoring.currentWeekOfQuarter()
+        let currentWeek = Scoring.currentWeekOfQuarter(maxWeek: plan.weeksInQuarter)
         if let weekPct = Scoring.weekPct(plan: plan, week: currentWeek) {
             let percentage = Int(weekPct * 100)
             return "You achieved \(percentage)% of your goals this week!"

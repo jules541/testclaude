@@ -35,7 +35,10 @@ struct ProgressView: View {
                 }
 
                 // Export Button
-                Button(action: exportData) {
+                ShareLink(
+                    item: PlanExport(plan: store.plan),
+                    preview: SharePreview("Goal Plan JSON")
+                ) {
                     Label("Export JSON", systemImage: "square.and.arrow.up")
                         .frame(maxWidth: .infinity)
                 }
@@ -46,11 +49,6 @@ struct ProgressView: View {
         }
         .background(AppTheme.Colors.background)
         .navigationTitle("Progress")
-    }
-
-    private func exportData() {
-        // Export functionality will be implemented
-        print("Export tapped")
     }
 }
 
@@ -65,16 +63,7 @@ struct WeekView: View {
         let calendar = Calendar.current
         let today = calendar.component(.weekday, from: Date()) - 1  // 0 = Sunday
 
-        // Get current week number
-        var currentWeek = 1
-        for w in 1...store.plan.weeksInQuarter {
-            let weekScores = store.plan.scores[String(w)] ?? [:]
-            if weekScores.isEmpty {
-                currentWeek = max(1, w - 1)
-                break
-            }
-            currentWeek = w
-        }
+        let currentWeek = Scoring.currentWeekOfQuarter(maxWeek: store.plan.weeksInQuarter)
 
         // For now, show all 7 days with placeholder data
         // TODO: Implement actual daily tracking

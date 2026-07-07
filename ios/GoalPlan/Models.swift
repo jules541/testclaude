@@ -164,7 +164,7 @@ extension Plan {
 
     /// Get today's progress for a habit (uses calendar-based current week)
     func todayProgress(for habit: Habit) -> Double? {
-        let currentWeek = Scoring.currentWeekOfQuarter()
+        let currentWeek = Scoring.currentWeekOfQuarter(maxWeek: weeksInQuarter)
         let weekScores = scores[String(currentWeek)] ?? [:]
         return weekScores[habit.id]
     }

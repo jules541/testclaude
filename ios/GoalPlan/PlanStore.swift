@@ -1,6 +1,7 @@
 import Foundation
 import WidgetKit
 import Observation
+import os
 
 /// Observable store for the plan data
 /// Uses iOS 17's @Observable macro for automatic change tracking
@@ -49,17 +50,19 @@ final class PlanStore {
             try SharedContainer.archivePlan(plan)
             plan = plan.rolledOver(to: Scoring.currentQuarterString())
         } catch {
-            print("Quarter rollover skipped — archiving \(plan.quarter) failed: \(error)")
+            Self.logger.error("Quarter rollover skipped — archiving \(self.plan.quarter) failed: \(error)")
         }
     }
 
     // MARK: - Persistence
 
+    private static let logger = Logger(subsystem: "com.goalplan.GoalPlan", category: "store")
+
     private func savePlan() {
         do {
             try SharedContainer.savePlan(plan)
         } catch {
-            print("Failed to save plan: \(error)")
+            Self.logger.error("Failed to save plan: \(error)")
         }
     }
 

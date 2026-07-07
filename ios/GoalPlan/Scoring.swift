@@ -164,9 +164,9 @@ enum Scoring {
         return (quarter, year)
     }
 
-    /// Get current week number within the quarter (1-13)
+    /// Get current week number within the quarter, clamped to 1...maxWeek
     /// Based on weeks elapsed since quarter start date
-    static func currentWeekOfQuarter(now: Date = Date()) -> Int {
+    static func currentWeekOfQuarter(now: Date = Date(), maxWeek: Int = 13) -> Int {
         let calendar = Calendar.current
 
         let (quarter, year) = currentQuarter(now: now)
@@ -181,7 +181,7 @@ enum Scoring {
         let components = calendar.dateComponents([.weekOfYear], from: quarterStart, to: now)
         let weeksElapsed = (components.weekOfYear ?? 0) + 1  // +1 because week 1 starts immediately
 
-        return min(max(weeksElapsed, 1), 13)  // Clamp to 1-13
+        return min(max(weeksElapsed, 1), maxWeek)
     }
 
     /// Format current quarter as "Q# YYYY" string

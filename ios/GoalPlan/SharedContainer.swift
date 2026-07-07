@@ -1,4 +1,6 @@
 import Foundation
+import CoreTransferable
+import UniformTypeIdentifiers
 
 /// Provides access to the App Group shared container for data sharing between the app and widget
 enum SharedContainer {
@@ -77,6 +79,20 @@ enum SharedContainer {
         guard let fileURL = archiveFileURL(for: quarter),
               let data = try? Data(contentsOf: fileURL) else { return nil }
         return try? JSONDecoder().decode(Plan.self, from: data)
+    }
+}
+
+/// Shareable JSON export of a plan, offered to ShareLink as a named .json file
+struct PlanExport: Transferable {
+    let plan: Plan
+
+    static var transferRepresentation: some TransferRepresentation {
+        DataRepresentation(exportedContentType: .json) { export in
+            try SharedContainer.exportPlan(export.plan)
+        }
+        .suggestedFileName { export in
+            "GoalPlan-\(export.plan.quarter.replacingOccurrences(of: " ", with: "-")).json"
+        }
     }
 }
 

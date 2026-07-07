@@ -44,7 +44,8 @@ struct TrackerView: View {
         .background(AppTheme.Colors.background)
         .navigationTitle("Tracker")
         .onAppear {
-            selectedWeek = Scoring.nextWeekToLog(plan: store.plan)
+            // Open to the same calendar week the dashboard logs into
+            selectedWeek = Scoring.currentWeekOfQuarter(maxWeek: store.plan.weeksInQuarter)
         }
     }
 }

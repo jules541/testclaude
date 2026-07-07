@@ -1,8 +1,13 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @Bindable private var notifications = NotificationManager.shared
     @Environment(PlanStore.self) private var store
+
+    @State private var isImporting = false
+    @State private var showResetConfirmation = false
+    @State private var importError: String?
 
     var body: some View {
         List {
@@ -81,20 +86,21 @@ struct SettingsView: View {
 
             // MARK: - Data Section
             Section("Data") {
-                Button {
-                    exportData()
-                } label: {
+                ShareLink(
+                    item: PlanExport(plan: store.plan),
+                    preview: SharePreview("Goal Plan JSON")
+                ) {
                     Label("Export JSON", systemImage: "square.and.arrow.up")
                 }
 
                 Button {
-                    // Import functionality
+                    isImporting = true
                 } label: {
                     Label("Import JSON", systemImage: "square.and.arrow.down")
                 }
 
                 Button(role: .destructive) {
-                    store.resetToDefault()
+                    showResetConfirmation = true
                 } label: {
                     Label("Reset to Default", systemImage: "arrow.counterclockwise")
                 }
@@ -112,27 +118,53 @@ struct SettingsView: View {
         }
         .navigationTitle("Settings")
         .tint(AppTheme.Colors.primary)
-        .task {
-            if !notifications.isAuthorized {
-                await notifications.requestAuthorization()
+        .onAppear {
+            notifications.checkAuthorizationStatus()
+        }
+        .fileImporter(
+            isPresented: $isImporting,
+            allowedContentTypes: [.json]
+        ) { result in
+            switch result {
+            case .success(let url):
+                importPlan(from: url)
+            case .failure(let error):
+                importError = error.localizedDescription
             }
+        }
+        .confirmationDialog(
+            "Reset to Default?",
+            isPresented: $showResetConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Reset", role: .destructive) {
+                store.resetToDefault()
+            }
+        } message: {
+            Text("This replaces your goals and scores with the default plan.")
+        }
+        .alert(
+            "Import Failed",
+            isPresented: Binding(
+                get: { importError != nil },
+                set: { if !$0 { importError = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(importError ?? "")
         }
     }
 
-    private func exportData() {
+    private func importPlan(from url: URL) {
         do {
-            let data = try store.exportJSON()
-            let activityVC = UIActivityViewController(
-                activityItems: [data],
-                applicationActivities: nil
-            )
+            let accessing = url.startAccessingSecurityScopedResource()
+            defer { if accessing { url.stopAccessingSecurityScopedResource() } }
 
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let rootVC = windowScene.windows.first?.rootViewController {
-                rootVC.present(activityVC, animated: true)
-            }
+            let data = try Data(contentsOf: url)
+            try store.importJSON(data: data)
         } catch {
-            print("Export failed: \(error)")
+            importError = error.localizedDescription
         }
     }
 }

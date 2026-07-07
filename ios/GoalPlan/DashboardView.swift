@@ -10,7 +10,7 @@ struct DashboardView: View {
     }
 
     private var currentWeek: Int {
-        Scoring.currentWeekOfQuarter()
+        Scoring.currentWeekOfQuarter(maxWeek: store.plan.weeksInQuarter)
     }
 
     var body: some View {
@@ -106,8 +106,8 @@ struct TodayGoalRow: View {
 
             Spacer()
 
-            // Percentage badge
-            if let pct = Scoring.habitPct(habit: habit, value: progress ?? 0) {
+            // Percentage badge (only once the habit has been logged)
+            if let pct = Scoring.habitPct(habit: habit, value: progress) {
                 Text(Scoring.formatPct(pct))
                     .badge(percentage: pct)
             }
