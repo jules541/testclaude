@@ -11,6 +11,9 @@ final class PlanStore {
         didSet {
             savePlan()
             reloadWidget()
+            // Pending notification content is computed at schedule time,
+            // so it must be rebuilt whenever the underlying data changes
+            NotificationManager.shared.scheduleAllNotifications()
         }
     }
 
@@ -87,15 +90,16 @@ final class PlanStore {
     }
 
     func deleteGoal(id: String) {
-        plan.goals.removeAll { $0.id == id }
-        // Also remove scores for habits from this goal
-        for weekKey in plan.scores.keys {
-            if let goal = plan.goals.first(where: { $0.id == id }) {
-                for habit in goal.habits {
-                    plan.scores[weekKey]?.removeValue(forKey: habit.id)
-                }
-            }
+        // Capture habit ids before removal so their scores can be cleaned up
+        guard let goal = plan.goals.first(where: { $0.id == id }) else { return }
+        let habitIds = Set(goal.habits.map(\.id))
+
+        var next = plan
+        next.goals.removeAll { $0.id == id }
+        next.scores = next.scores.mapValues { week in
+            week.filter { !habitIds.contains($0.key) }
         }
+        plan = next
     }
 
     func moveGoal(from source: IndexSet, to destination: Int) {

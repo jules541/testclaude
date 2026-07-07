@@ -22,6 +22,10 @@ struct GoalPlanApp: App {
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 store.rollOverIfNeeded()
+                // Rebuild pending notifications so their content is current,
+                // and clear the badge set by the evening reminder
+                NotificationManager.shared.scheduleAllNotifications()
+                NotificationManager.shared.clearBadge()
             }
         }
     }
