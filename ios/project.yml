@@ -1,0 +1,129 @@
+name: GoalPlan
+
+options:
+  bundleIdPrefix: com.goalplan
+  deploymentTarget:
+    iOS: "17.0"
+  developmentLanguage: en
+  createIntermediateGroups: true
+
+settings:
+  base:
+    DEVELOPMENT_TEAM: ""
+
+targets:
+  GoalPlan:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: GoalPlan
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.goalplan.GoalPlan
+        INFOPLIST_FILE: GoalPlan/Info.plist
+        ENABLE_PREVIEWS: YES
+        DEVELOPMENT_ASSET_PATHS: '"GoalPlan/Preview Content"'
+        CODE_SIGN_ENTITLEMENTS: GoalPlan/GoalPlan.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    entitlements:
+      path: GoalPlan/GoalPlan.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.goalplan.GoalPlan
+    info:
+      path: GoalPlan/Info.plist
+      properties:
+        CFBundleDevelopmentRegion: en
+        CFBundleDisplayName: Goal Plan
+        CFBundleExecutable: $(EXECUTABLE_NAME)
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
+        CFBundleInfoDictionaryVersion: "6.0"
+        CFBundleName: $(PRODUCT_NAME)
+        CFBundlePackageType: APPL
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        LSRequiresIPhoneOS: true
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations: {}
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    dependencies:
+      - target: GoalPlanWidget
+
+  GoalPlanWidget:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: GoalPlanWidget
+      - path: GoalPlan/Models.swift
+      - path: GoalPlan/Scoring.swift
+      - path: GoalPlan/Streaks.swift
+      - path: GoalPlan/SharedContainer.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.goalplan.GoalPlan.GoalPlanWidget
+        INFOPLIST_FILE: GoalPlanWidget/Info.plist
+        CODE_SIGN_ENTITLEMENTS: GoalPlanWidget/GoalPlanWidget.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME: WidgetBackground
+    entitlements:
+      path: GoalPlanWidget/GoalPlanWidget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.goalplan.GoalPlan
+    info:
+      path: GoalPlanWidget/Info.plist
+      properties:
+        CFBundleDevelopmentRegion: en
+        CFBundleDisplayName: Goal Plan Widget
+        CFBundleExecutable: $(EXECUTABLE_NAME)
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
+        CFBundleInfoDictionaryVersion: "6.0"
+        CFBundleName: $(PRODUCT_NAME)
+        CFBundlePackageType: XPC!
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+
+  GoalPlanTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: GoalPlanTests
+    dependencies:
+      - target: GoalPlan
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.goalplan.GoalPlanTests
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/GoalPlan.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/GoalPlan
+
+schemes:
+  GoalPlan:
+    build:
+      targets:
+        GoalPlan: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - GoalPlanTests
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release
