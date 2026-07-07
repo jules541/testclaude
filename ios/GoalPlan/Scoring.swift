@@ -114,9 +114,8 @@ enum Scoring {
 
     /// Calculate year progress (% of calendar year elapsed)
     /// Returns percentage of year complete (0.0 to 1.0)
-    static func yearProgress() -> Double {
+    static func yearProgress(now: Date = Date()) -> Double {
         let calendar = Calendar.current
-        let now = Date()
         let year = calendar.component(.year, from: now)
 
         guard let startOfYear = calendar.date(from: DateComponents(year: year, month: 1, day: 1)),
@@ -131,9 +130,8 @@ enum Scoring {
     }
 
     /// Get days remaining in the year
-    static func daysRemainingInYear() -> Int {
+    static func daysRemainingInYear(now: Date = Date()) -> Int {
         let calendar = Calendar.current
-        let now = Date()
         let year = calendar.component(.year, from: now)
 
         guard let endOfYear = calendar.date(from: DateComponents(year: year + 1, month: 1, day: 1)) else {
@@ -157,9 +155,8 @@ enum Scoring {
     /// Get current quarter (1-4) and year based on today's date
     /// Returns tuple: (quarter: Int, year: Int)
     /// Example: June 28, 2026 → (2, 2026)
-    static func currentQuarter() -> (quarter: Int, year: Int) {
+    static func currentQuarter(now: Date = Date()) -> (quarter: Int, year: Int) {
         let calendar = Calendar.current
-        let now = Date()
         let month = calendar.component(.month, from: now)
         let year = calendar.component(.year, from: now)
 
@@ -169,11 +166,10 @@ enum Scoring {
 
     /// Get current week number within the quarter (1-13)
     /// Based on weeks elapsed since quarter start date
-    static func currentWeekOfQuarter() -> Int {
+    static func currentWeekOfQuarter(now: Date = Date()) -> Int {
         let calendar = Calendar.current
-        let now = Date()
 
-        let (quarter, year) = currentQuarter()
+        let (quarter, year) = currentQuarter(now: now)
 
         // Calculate quarter start date
         let startMonth = (quarter - 1) * 3 + 1  // Q1→Jan, Q2→Apr, Q3→Jul, Q4→Oct
@@ -190,8 +186,8 @@ enum Scoring {
 
     /// Format current quarter as "Q# YYYY" string
     /// Example: "Q2 2026"
-    static func currentQuarterString() -> String {
-        let (quarter, year) = currentQuarter()
+    static func currentQuarterString(now: Date = Date()) -> String {
+        let (quarter, year) = currentQuarter(now: now)
         return "Q\(quarter) \(year)"
     }
 }
