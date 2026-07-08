@@ -29,6 +29,7 @@
 		865A2ADA892171C4245BE2CD /* TestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 140DF1BD36AF9CC00A69F78C /* TestSupport.swift */; };
 		8A2F825FE18BA6F521D52CF1 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 819982DF0C10E10ECCDBC556 /* Models.swift */; };
 		8DB5944226E3F6737D30106E /* OnboardingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66998DCD658B238CF9B89984 /* OnboardingManager.swift */; };
+		9322B62B61FC09119E1323A9 /* DailyTrackingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCF4D1176C20060B5FE46A55 /* DailyTrackingTests.swift */; };
 		9B9B395415383332FF1DEBAA /* StreaksTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2A5E7204A9B52301351971 /* StreaksTests.swift */; };
 		A1F7C9B8009D6C7F20AB7A85 /* PlanStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81FE82D3F9A35014E9043F03 /* PlanStore.swift */; };
 		A2C0EEF66D16002160C845B6 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 819982DF0C10E10ECCDBC556 /* Models.swift */; };
@@ -105,6 +106,7 @@
 		CA2C8FF2C536C054AD08C9FD /* GoalTemplates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalTemplates.swift; sourceTree = "<group>"; };
 		CC084B9CD3D4EC870EF9F560 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		CF490AFD98347CE68DF00548 /* GoalPlan.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GoalPlan.entitlements; sourceTree = "<group>"; };
+		DCF4D1176C20060B5FE46A55 /* DailyTrackingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyTrackingTests.swift; sourceTree = "<group>"; };
 		DD573D04873DFEEE6AA5C727 /* SharedContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedContainer.swift; sourceTree = "<group>"; };
 		E1DC2639C5274668B6FA2E5F /* Streaks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Streaks.swift; sourceTree = "<group>"; };
 		E43013B7F3DB469724C60082 /* Animations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Animations.swift; sourceTree = "<group>"; };
@@ -190,6 +192,7 @@
 		8D625C15A37279E52D97384F /* GoalPlanTests */ = {
 			isa = PBXGroup;
 			children = (
+				DCF4D1176C20060B5FE46A55 /* DailyTrackingTests.swift */,
 				73A3CE03E6349F61FCFA54E1 /* ScoringTests.swift */,
 				6C2A5E7204A9B52301351971 /* StreaksTests.swift */,
 				140DF1BD36AF9CC00A69F78C /* TestSupport.swift */,
@@ -390,6 +393,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9322B62B61FC09119E1323A9 /* DailyTrackingTests.swift in Sources */,
 				A992A27B91C87EA7504BDF04 /* ScoringTests.swift in Sources */,
 				9B9B395415383332FF1DEBAA /* StreaksTests.swift in Sources */,
 				865A2ADA892171C4245BE2CD /* TestSupport.swift in Sources */,

@@ -10,6 +10,38 @@ struct Plan: Codable, Equatable {
     var vision: String
     var goals: [Goal]
     var scores: [String: [String: Double]]  // week → habitId → value
+    var dailyScores: [String: [String: Double]]  // "yyyy-MM-dd" → habitId → value
+
+    init(
+        owner: String,
+        quarter: String,
+        weeksInQuarter: Int,
+        vision: String,
+        goals: [Goal],
+        scores: [String: [String: Double]],
+        dailyScores: [String: [String: Double]] = [:]
+    ) {
+        self.owner = owner
+        self.quarter = quarter
+        self.weeksInQuarter = weeksInQuarter
+        self.vision = vision
+        self.goals = goals
+        self.scores = scores
+        self.dailyScores = dailyScores
+    }
+
+    // Custom decoding: dailyScores is optional in the JSON so plans saved by
+    // older app versions and web-app exports (which never write it) still import
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.owner = try container.decode(String.self, forKey: .owner)
+        self.quarter = try container.decode(String.self, forKey: .quarter)
+        self.weeksInQuarter = try container.decode(Int.self, forKey: .weeksInQuarter)
+        self.vision = try container.decode(String.self, forKey: .vision)
+        self.goals = try container.decode([Goal].self, forKey: .goals)
+        self.scores = try container.decode([String: [String: Double]].self, forKey: .scores)
+        self.dailyScores = try container.decodeIfPresent([String: [String: Double]].self, forKey: .dailyScores) ?? [:]
+    }
 
     static func defaultPlan() -> Plan {
         Plan(
@@ -115,25 +147,6 @@ struct Habit: Codable, Equatable, Identifiable {
     var target: Double
 }
 
-// MARK: - Daily Goals (Phase 0)
-
-struct DailyGoal: Codable, Equatable, Identifiable {
-    var id: String
-    var habitId: String
-    var dayOfWeek: Int  // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-    var target: Double
-}
-
-extension Goal {
-    /// Daily goals for habits in this goal
-    var dailyGoals: [DailyGoal] {
-        get {
-            // For now, return empty array - will be populated when user sets daily targets
-            return []
-        }
-    }
-}
-
 extension Plan {
     /// True when the stored quarter no longer matches the calendar quarter,
     /// meaning scores belong to a previous quarter and must not be overwritten
@@ -147,25 +160,22 @@ extension Plan {
         var next = self
         next.quarter = newQuarter
         next.scores = [:]
+        next.dailyScores = [:]
         return next
     }
 
-    /// Get today's goals (all habits with optional daily targets for today)
-    func todayGoals() -> [(habit: Habit, dailyGoal: DailyGoal?)] {
-        // For now, return all habits (daily filtering will be added later)
-        var result: [(habit: Habit, dailyGoal: DailyGoal?)] = []
-        for goal in goals {
-            for habit in goal.habits {
-                result.append((habit: habit, dailyGoal: nil))
-            }
-        }
-        return result
+    /// All habits across all goals, in display order
+    var allHabits: [Habit] {
+        goals.flatMap(\.habits)
     }
 
-    /// Get today's progress for a habit (uses calendar-based current week)
-    func todayProgress(for habit: Habit) -> Double? {
-        let currentWeek = Scoring.currentWeekOfQuarter(maxWeek: weeksInQuarter)
-        let weekScores = scores[String(currentWeek)] ?? [:]
-        return weekScores[habit.id]
+    /// What was logged for this habit today (nil if nothing yet)
+    func todayContribution(for habit: Habit, now: Date = Date()) -> Double? {
+        dailyScores[Scoring.dayKey(for: now)]?[habit.id]
+    }
+
+    /// This habit's weekly total for the given week (nil if unlogged)
+    func weekTotal(for habit: Habit, week: Int) -> Double? {
+        scores[String(week)]?[habit.id]
     }
 }

@@ -9,7 +9,11 @@ func makeDate(_ year: Int, _ month: Int, _ day: Int) -> Date {
 }
 
 /// A small two-goal plan: g1 (workout 7, vitamins 7) and g2 (reading 30)
-func makePlan(scores: [String: [String: Double]] = [:], weeksInQuarter: Int = 13) -> Plan {
+func makePlan(
+    scores: [String: [String: Double]] = [:],
+    dailyScores: [String: [String: Double]] = [:],
+    weeksInQuarter: Int = 13
+) -> Plan {
     Plan(
         owner: "Test",
         quarter: "Q3 2026",
@@ -24,8 +28,14 @@ func makePlan(scores: [String: [String: Double]] = [:], weeksInQuarter: Int = 13
                 Habit(id: "reading", name: "Reading", unit: "minutes", target: 30)
             ])
         ],
-        scores: scores
+        scores: scores,
+        dailyScores: dailyScores
     )
+}
+
+/// A date `days` into the current calendar quarter (0 = quarter start)
+func dayIntoQuarter(_ days: Int) -> Date {
+    Calendar.current.date(byAdding: .day, value: days, to: Scoring.quarterStartDate())!
 }
 
 /// Scores that produce weekPct == 1.0 for makePlan()

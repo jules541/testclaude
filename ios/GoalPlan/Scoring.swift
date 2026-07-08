@@ -82,24 +82,38 @@ enum Scoring {
         return .low
     }
 
-    // MARK: - Daily Scoring (Phase 0)
+    // MARK: - Daily Tracking
 
-    /// Calculate daily percentage for a specific day of the week (0 = Sunday, 1 = Monday, etc.)
-    /// Returns percentage of daily goal completion for that day
-    static func dayPct(plan: Plan, week: Int, dayOfWeek: Int) -> Double? {
-        // For now, calculate daily score by dividing weekly score by 7
-        // This will be replaced with actual daily tracking later
-        guard let weekPct = weekPct(plan: plan, week: week) else { return nil }
-        return weekPct / 7.0
+    private static let dayKeyFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar.current
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+
+    /// Key used in Plan.dailyScores for a given local date, e.g. "2026-07-06"
+    static func dayKey(for date: Date = Date()) -> String {
+        dayKeyFormatter.string(from: date)
     }
 
-    /// Get current week broken down by day (Mon-Sun)
-    /// Returns array of tuples: [(dayOfWeek, percentage)]
-    static func currentWeekDays(plan: Plan) -> [(day: Int, pct: Double?)] {
-        let currentWeek = nextWeekToLog(plan: plan)
-        return (1...7).map { day in
-            (day: day, pct: dayPct(plan: plan, week: currentWeek, dayOfWeek: day))
-        }
+    /// How many of the plan's habits were logged on the given day.
+    /// Returns nil when nothing was logged — days are activity, never grades.
+    static func dayActivity(plan: Plan, date: Date) -> (logged: Int, total: Int)? {
+        let habitIds = Set(plan.allHabits.map(\.id))
+        guard !habitIds.isEmpty,
+              let dayLog = plan.dailyScores[dayKey(for: date)] else { return nil }
+
+        let logged = habitIds.intersection(dayLog.keys).count
+        guard logged > 0 else { return nil }
+        return (logged, habitIds.count)
+    }
+
+    /// The 7 dates of the calendar week containing `now`
+    static func daysOfCurrentWeek(now: Date = Date()) -> [Date] {
+        let calendar = Calendar.current
+        guard let interval = calendar.dateInterval(of: .weekOfYear, for: now) else { return [] }
+        return (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: interval.start) }
     }
 
     /// Get last 4 weeks of the quarter for month view
@@ -164,18 +178,19 @@ enum Scoring {
         return (quarter, year)
     }
 
+    /// First day of the calendar quarter containing `now`
+    static func quarterStartDate(now: Date = Date()) -> Date {
+        let calendar = Calendar.current
+        let (quarter, year) = currentQuarter(now: now)
+        let startMonth = (quarter - 1) * 3 + 1  // Q1→Jan, Q2→Apr, Q3→Jul, Q4→Oct
+        return calendar.date(from: DateComponents(year: year, month: startMonth, day: 1)) ?? now
+    }
+
     /// Get current week number within the quarter, clamped to 1...maxWeek
     /// Based on weeks elapsed since quarter start date
     static func currentWeekOfQuarter(now: Date = Date(), maxWeek: Int = 13) -> Int {
         let calendar = Calendar.current
-
-        let (quarter, year) = currentQuarter(now: now)
-
-        // Calculate quarter start date
-        let startMonth = (quarter - 1) * 3 + 1  // Q1→Jan, Q2→Apr, Q3→Jul, Q4→Oct
-        guard let quarterStart = calendar.date(from: DateComponents(year: year, month: startMonth, day: 1)) else {
-            return 1
-        }
+        let quarterStart = quarterStartDate(now: now)
 
         // Calculate weeks elapsed
         let components = calendar.dateComponents([.weekOfYear], from: quarterStart, to: now)

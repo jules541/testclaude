@@ -57,43 +57,38 @@ struct ProgressView: View {
 struct WeekView: View {
     @Bindable var store: PlanStore
 
-    private let dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    private var weekDays: [(name: String, activity: (logged: Int, total: Int)?)] {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE"
 
-    private var currentWeekDays: [(day: String, pct: Double?)] {
-        let calendar = Calendar.current
-        let today = calendar.component(.weekday, from: Date()) - 1  // 0 = Sunday
-
-        let currentWeek = Scoring.currentWeekOfQuarter(maxWeek: store.plan.weeksInQuarter)
-
-        // For now, show all 7 days with placeholder data
-        // TODO: Implement actual daily tracking
-        let weekPct = Scoring.weekPct(plan: store.plan, week: currentWeek)
-
-        return dayNames.enumerated().map { index, name in
-            // Mark days after today as not yet tracked
-            let dayPct: Double? = index <= today ? weekPct.map { $0 / 7.0 } : nil
-            return (day: name, pct: dayPct)
+        return Scoring.daysOfCurrentWeek().map { date in
+            (
+                name: formatter.string(from: date),
+                activity: Scoring.dayActivity(plan: store.plan, date: date)
+            )
         }
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
-            Text("Current Week (Daily Breakdown)")
+            Text("This Week's Activity")
                 .sectionHeaderStyle()
 
-            ForEach(Array(currentWeekDays.enumerated()), id: \.offset) { index, item in
+            ForEach(Array(weekDays.enumerated()), id: \.offset) { _, item in
                 HStack {
-                    Text(item.day)
+                    Text(item.name)
                         .font(AppTheme.Typography.body)
                         .foregroundColor(AppTheme.Colors.textPrimary)
                         .frame(width: 60, alignment: .leading)
 
-                    if let pct = item.pct {
+                    if let activity = item.activity {
+                        let fraction = Double(activity.logged) / Double(activity.total)
+
                         GeometryReader { geo in
                             HStack(spacing: 0) {
                                 RoundedRectangle(cornerRadius: AppTheme.Radius.small)
                                     .fill(AppGradients.progressBar)
-                                    .frame(width: geo.size.width * pct)
+                                    .frame(width: geo.size.width * fraction)
 
                                 Spacer(minLength: 0)
                             }
@@ -104,8 +99,10 @@ struct WeekView: View {
                                 .fill(AppTheme.Colors.border)
                         )
 
-                        Text(Scoring.formatPct(pct))
-                            .badge(percentage: pct)
+                        Text("\(activity.logged) of \(activity.total)")
+                            .font(AppTheme.Typography.caption)
+                            .foregroundColor(AppTheme.Colors.textSecondary)
+                            .frame(width: 50, alignment: .trailing)
                     } else {
                         GeometryReader { geo in
                             RoundedRectangle(cornerRadius: AppTheme.Radius.small)

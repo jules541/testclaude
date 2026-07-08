@@ -28,11 +28,11 @@ struct DashboardView: View {
                             .sectionHeaderStyle()
                     }
 
-                    ForEach(store.plan.todayGoals(), id: \.habit.id) { item in
+                    ForEach(store.plan.allHabits) { habit in
                         TodayGoalRow(
-                            habit: item.habit,
-                            progress: store.plan.todayProgress(for: item.habit),
-                            currentWeek: currentWeek,
+                            habit: habit,
+                            todayValue: store.plan.todayContribution(for: habit),
+                            weekValue: store.plan.weekTotal(for: habit, week: currentWeek),
                             store: store
                         )
                     }
@@ -49,48 +49,52 @@ struct DashboardView: View {
 
 struct TodayGoalRow: View {
     let habit: Habit
-    let progress: Double?
-    let currentWeek: Int
+    let todayValue: Double?
+    let weekValue: Double?
     @Bindable var store: PlanStore
 
     @State private var isPressed = false
 
-    private var isComplete: Bool {
-        guard let progress = progress else { return false }
-        return progress >= habit.target
+    /// Success is measured against the weekly target (contribution model)
+    private var isWeekComplete: Bool {
+        (weekValue ?? 0) >= habit.target
     }
 
     private func toggleCompletion() {
-        let currentProgress = progress ?? 0
-        let newValue: Double
+        let today = todayValue ?? 0
 
-        // Increment by 1, wrap to 0 when at target
-        if currentProgress >= habit.target {
-            newValue = 0  // Reset to start
+        if isWeekComplete {
+            // Weekly target met: tapping undoes today's contribution (if any);
+            // never wipes progress logged on other days
+            if today > 0 {
+                store.logDaily(habitId: habit.id, value: nil)
+            }
         } else {
-            newValue = currentProgress + 1  // Increment by 1
+            store.logDaily(habitId: habit.id, value: today + 1)
         }
-
-        store.updateScore(week: currentWeek, habitId: habit.id, value: newValue)
     }
 
-    private var progressText: String {
-        guard let progress = progress else { return "0/\(Int(habit.target))" }
-
-        if habit.unit == "minutes" {
-            return "\(Int(progress))/\(Int(habit.target)) min"
-        } else if habit.unit == "hours" {
-            return "\(Int(progress))/\(Int(habit.target)) hr"
-        } else {
-            return "\(Int(progress))/\(Int(habit.target))"
+    private var weekText: String {
+        let base = "\(Int(weekValue ?? 0))/\(Int(habit.target))"
+        switch habit.unit {
+        case "minutes": return "\(base) min this week"
+        case "hours": return "\(base) hr this week"
+        default: return "\(base) this week"
         }
+    }
+
+    private var todayText: String? {
+        guard let today = todayValue, today > 0 else { return nil }
+        let display = today.truncatingRemainder(dividingBy: 1) == 0
+            ? String(Int(today)) : String(today)
+        return "+\(display) today"
     }
 
     var body: some View {
         HStack(spacing: AppTheme.Spacing.md) {
-            // Completion indicator
-            Image(systemName: isComplete ? "checkmark.circle.fill" : "circle")
-                .foregroundColor(isComplete ? AppTheme.Colors.scoreFull : AppTheme.Colors.textMuted)
+            // Weekly completion indicator
+            Image(systemName: isWeekComplete ? "checkmark.circle.fill" : "circle")
+                .foregroundColor(isWeekComplete ? AppTheme.Colors.scoreFull : AppTheme.Colors.textMuted)
                 .font(.title3)
 
             // Habit info
@@ -99,15 +103,23 @@ struct TodayGoalRow: View {
                     .font(AppTheme.Typography.body)
                     .bold()
                     .foregroundColor(AppTheme.Colors.textPrimary)
-                Text(progressText)
-                    .font(AppTheme.Typography.caption)
-                    .foregroundColor(AppTheme.Colors.textSecondary)
+                HStack(spacing: AppTheme.Spacing.sm) {
+                    Text(weekText)
+                        .font(AppTheme.Typography.caption)
+                        .foregroundColor(AppTheme.Colors.textSecondary)
+                    if let todayText {
+                        Text(todayText)
+                            .font(AppTheme.Typography.caption)
+                            .bold()
+                            .foregroundColor(AppTheme.Colors.primary)
+                    }
+                }
             }
 
             Spacer()
 
-            // Percentage badge (only once the habit has been logged)
-            if let pct = Scoring.habitPct(habit: habit, value: progress) {
+            // Weekly percentage badge (only once the habit has been logged)
+            if let pct = Scoring.habitPct(habit: habit, value: weekValue) {
                 Text(Scoring.formatPct(pct))
                     .badge(percentage: pct)
             }
