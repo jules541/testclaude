@@ -44,6 +44,10 @@ targets:
         CFBundleShortVersionString: "1.0"
         CFBundleVersion: "1"
         LSRequiresIPhoneOS: true
+        CFBundleURLTypes:
+          - CFBundleURLName: com.goalplan.GoalPlan
+            CFBundleURLSchemes:
+              - goalplan
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
           UISceneConfigurations: {}
@@ -70,6 +74,7 @@ targets:
       - path: GoalPlan/Scoring.swift
       - path: GoalPlan/Streaks.swift
       - path: GoalPlan/SharedContainer.swift
+      - path: GoalPlan/LogHabitIntent.swift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.goalplan.GoalPlan.GoalPlanWidget

@@ -132,6 +132,63 @@ struct LogDailyTests {
     }
 }
 
+// MARK: - Week Boundaries and Pure Logging
+
+@Suite("Week boundary helpers")
+struct WeekBoundaryTests {
+
+    @Test("daysLeftInCurrentWeek is 7 on the week's first day and 1 on its last")
+    func daysLeftBounds() {
+        #expect(Scoring.daysLeftInCurrentWeek(now: dayIntoQuarter(0)) == 7)
+        #expect(Scoring.daysLeftInCurrentWeek(now: dayIntoQuarter(6)) == 1)
+        #expect(Scoring.daysLeftInCurrentWeek(now: dayIntoQuarter(7)) == 7)  // week 2 starts
+    }
+
+    @Test("currentWeekEndDate is the 7th day of the current quarter week")
+    func weekEndDate() {
+        let end = Scoring.currentWeekEndDate(now: dayIntoQuarter(0))
+        #expect(Scoring.dayKey(for: end) == Scoring.dayKey(for: dayIntoQuarter(6)))
+
+        let week2End = Scoring.currentWeekEndDate(now: dayIntoQuarter(8))
+        #expect(Scoring.dayKey(for: week2End) == Scoring.dayKey(for: dayIntoQuarter(13)))
+    }
+
+    @Test("dayKeys(inWeek:) covers exactly the week's 7 days")
+    func dayKeysSpan() {
+        let keys = Scoring.dayKeys(inWeek: 2, reference: dayIntoQuarter(0))
+        #expect(keys.count == 7)
+        #expect(keys.first == Scoring.dayKey(for: dayIntoQuarter(7)))
+        #expect(keys.last == Scoring.dayKey(for: dayIntoQuarter(13)))
+    }
+}
+
+@Suite("Pure Plan.loggingDaily")
+struct LoggingDailyPureTests {
+
+    @Test("applies the daily entry and rolls up without mutating the original")
+    func pureApplication() {
+        let plan = makePlan()
+        let day = dayIntoQuarter(0)
+        let week = Scoring.currentWeekOfQuarter(now: day)
+
+        let next = plan.loggingDaily(habitId: "workout", value: 2, date: day)
+
+        #expect(plan.dailyScores.isEmpty)  // original untouched
+        #expect(next.dailyScores[Scoring.dayKey(for: day)]?["workout"] == 2)
+        #expect(next.scores[String(week)]?["workout"] == 2)
+    }
+
+    @Test("manual weekly baseline survives daily logging")
+    func baselineSurvives() {
+        let day = dayIntoQuarter(0)
+        let week = Scoring.currentWeekOfQuarter(now: day)
+        let plan = makePlan(scores: [String(week): ["workout": 5]])
+
+        let next = plan.loggingDaily(habitId: "workout", value: 1, date: day)
+        #expect(next.scores[String(week)]?["workout"] == 6)
+    }
+}
+
 // MARK: - Rollover and Codable
 
 @Suite("Daily scores rollover and persistence")

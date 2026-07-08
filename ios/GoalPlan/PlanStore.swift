@@ -133,7 +133,7 @@ final class PlanStore {
     func clearWeekScores(week: Int) {
         var next = plan
         next.scores.removeValue(forKey: String(week))
-        for key in Self.dayKeys(inWeek: week) {
+        for key in Scoring.dayKeys(inWeek: week) {
             next.dailyScores.removeValue(forKey: key)
         }
         plan = next
@@ -141,62 +141,15 @@ final class PlanStore {
 
     // MARK: - Daily Logging
 
-    /// Log what was done today (or on `date`) for a habit, then roll the week's
-    /// daily logs up into the weekly total. Any manual weekly value beyond the
-    /// previous daily sum is preserved as a baseline, so backfilled weeks and
-    /// daily taps combine instead of clobbering each other.
+    /// Log what was done today (or on `date`) for a habit; the week's daily
+    /// logs roll up into the weekly total (see Plan.loggingDaily)
     func logDaily(habitId: String, value: Double?, date: Date = Date()) {
-        var next = plan
-        let dayKey = Scoring.dayKey(for: date)
-        let week = Scoring.currentWeekOfQuarter(now: date, maxWeek: next.weeksInQuarter)
-        let weekKeys = Self.dayKeys(inWeek: week, reference: date)
-        let weekKey = String(week)
-
-        // Manual baseline = existing weekly value minus what dailies accounted for
-        let oldSum = weekKeys.compactMap { next.dailyScores[$0]?[habitId] }.reduce(0, +)
-        let oldWeekly = next.scores[weekKey]?[habitId] ?? 0
-        let baseline = max(0, oldWeekly - oldSum)
-
-        // Write or remove the daily entry
-        if let value = value {
-            next.dailyScores[dayKey, default: [:]][habitId] = value
-        } else {
-            next.dailyScores[dayKey]?.removeValue(forKey: habitId)
-            if next.dailyScores[dayKey]?.isEmpty == true {
-                next.dailyScores.removeValue(forKey: dayKey)
-            }
-        }
-
-        // Roll up into the weekly total
-        let newSum = weekKeys.compactMap { next.dailyScores[$0]?[habitId] }.reduce(0, +)
-        let hasAnyDaily = weekKeys.contains { next.dailyScores[$0]?[habitId] != nil }
-
-        if hasAnyDaily || baseline > 0 {
-            next.scores[weekKey, default: [:]][habitId] = newSum + baseline
-        } else {
-            next.scores[weekKey]?.removeValue(forKey: habitId)
-            if next.scores[weekKey]?.isEmpty == true {
-                next.scores.removeValue(forKey: weekKey)
-            }
-        }
-
-        plan = next
-    }
-
-    /// Day keys ("yyyy-MM-dd") for the 7 days of a quarter week.
-    /// `reference` picks which calendar quarter the week belongs to.
-    private static func dayKeys(inWeek week: Int, reference: Date = Date()) -> [String] {
-        let calendar = Calendar.current
-        let quarterStart = Scoring.quarterStartDate(now: reference)
-        return (0..<7).compactMap { day in
-            calendar.date(byAdding: .day, value: (week - 1) * 7 + day, to: quarterStart)
-                .map { Scoring.dayKey(for: $0) }
-        }
+        plan = plan.loggingDaily(habitId: habitId, value: value, date: date)
     }
 
     /// Remove a habit's daily entries for a week, dropping empty day dicts
     private static func removeDailyEntries(from plan: inout Plan, habitId: String, week: Int) {
-        for key in dayKeys(inWeek: week) {
+        for key in Scoring.dayKeys(inWeek: week) {
             plan.dailyScores[key]?.removeValue(forKey: habitId)
             if plan.dailyScores[key]?.isEmpty == true {
                 plan.dailyScores.removeValue(forKey: key)

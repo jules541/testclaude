@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DashboardView: View {
     @Environment(PlanStore.self) private var store
+    @State private var quickLogHabit: Habit?
 
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -16,6 +17,9 @@ struct DashboardView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: AppTheme.Spacing.xxl) {
+                // What's left to hit this week's targets
+                WeekRemainingCard(store: store)
+
                 // Quarter + Year Progress Header
                 QuarterProgressView(store: store)
 
@@ -33,7 +37,8 @@ struct DashboardView: View {
                             habit: habit,
                             todayValue: store.plan.todayContribution(for: habit),
                             weekValue: store.plan.weekTotal(for: habit, week: currentWeek),
-                            store: store
+                            store: store,
+                            onLongPress: { quickLogHabit = habit }
                         )
                     }
                 }
@@ -44,6 +49,9 @@ struct DashboardView: View {
         }
         .background(AppTheme.Colors.background)
         .navigationTitle("Dashboard")
+        .sheet(item: $quickLogHabit) { habit in
+            QuickLogSheet(habit: habit, store: store)
+        }
     }
 }
 
@@ -52,6 +60,7 @@ struct TodayGoalRow: View {
     let todayValue: Double?
     let weekValue: Double?
     @Bindable var store: PlanStore
+    var onLongPress: () -> Void = {}
 
     @State private var isPressed = false
 
@@ -139,6 +148,9 @@ struct TodayGoalRow: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                 isPressed = false
             }
+        }
+        .onLongPressGesture {
+            onLongPress()
         }
     }
 }

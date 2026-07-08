@@ -116,6 +116,38 @@ enum Scoring {
         return (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: interval.start) }
     }
 
+    /// Day keys ("yyyy-MM-dd") for the 7 days of a quarter week.
+    /// `reference` picks which calendar quarter the week belongs to.
+    static func dayKeys(inWeek week: Int, reference: Date = Date()) -> [String] {
+        let calendar = Calendar.current
+        let quarterStart = quarterStartDate(now: reference)
+        return (0..<7).compactMap { day in
+            calendar.date(byAdding: .day, value: (week - 1) * 7 + day, to: quarterStart)
+                .map { dayKey(for: $0) }
+        }
+    }
+
+    /// Days remaining in the current quarter week, counting today
+    /// (7 on the week's first day, 1 on its last)
+    static func daysLeftInCurrentWeek(now: Date = Date()) -> Int {
+        let calendar = Calendar.current
+        let quarterStart = quarterStartDate(now: now)
+        let daysElapsed = calendar.dateComponents(
+            [.day],
+            from: calendar.startOfDay(for: quarterStart),
+            to: calendar.startOfDay(for: now)
+        ).day ?? 0
+        return 7 - (daysElapsed % 7)
+    }
+
+    /// The last day of the current quarter week
+    static func currentWeekEndDate(now: Date = Date(), maxWeek: Int = 13) -> Date {
+        let calendar = Calendar.current
+        let week = currentWeekOfQuarter(now: now, maxWeek: maxWeek)
+        let quarterStart = quarterStartDate(now: now)
+        return calendar.date(byAdding: .day, value: (week - 1) * 7 + 6, to: quarterStart) ?? now
+    }
+
     /// Get last 4 weeks of the quarter for month view
     /// Returns array of tuples: [(week, percentage)]
     static func monthView(plan: Plan) -> [(week: Int, pct: Double?)] {

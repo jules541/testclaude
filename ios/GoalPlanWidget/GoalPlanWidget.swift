@@ -1,5 +1,6 @@
 import WidgetKit
 import SwiftUI
+import AppIntents
 
 // MARK: - Widget Bundle (extension entry point)
 
@@ -28,6 +29,13 @@ struct GoalPlanWidget: Widget {
 
 // MARK: - Timeline Entry
 
+struct BehindHabit: Identifiable {
+    let id: String
+    let name: String
+    let done: Int
+    let target: Int
+}
+
 struct GoalPlanEntry: TimelineEntry {
     let date: Date
     let quarterName: String
@@ -35,6 +43,7 @@ struct GoalPlanEntry: TimelineEntry {
     let weekPct: Double?
     let quarterPct: Double?
     let streak: Int
+    let behindHabits: [BehindHabit]
 
     static let placeholder = GoalPlanEntry(
         date: .now,
@@ -42,7 +51,11 @@ struct GoalPlanEntry: TimelineEntry {
         currentWeek: 1,
         weekPct: 0.62,
         quarterPct: 0.74,
-        streak: 3
+        streak: 3,
+        behindHabits: [
+            BehindHabit(id: "workout", name: "Workout", done: 3, target: 7),
+            BehindHabit(id: "reading", name: "Reading", done: 10, target: 30)
+        ]
     )
 }
 
@@ -72,13 +85,29 @@ struct Provider: TimelineProvider {
         guard let plan = SharedContainer.loadPlan() else { return .placeholder }
 
         let week = Scoring.currentWeekOfQuarter(now: now, maxWeek: plan.weeksInQuarter)
+
+        // The two habits furthest from their weekly target, for +1 buttons
+        let behind = plan.allHabits
+            .compactMap { habit -> (BehindHabit, Double)? in
+                let done = plan.weekTotal(for: habit, week: week) ?? 0
+                guard habit.target > 0, done < habit.target else { return nil }
+                return (
+                    BehindHabit(id: habit.id, name: habit.name, done: Int(done), target: Int(habit.target)),
+                    done / habit.target
+                )
+            }
+            .sorted { $0.1 < $1.1 }
+            .prefix(2)
+            .map(\.0)
+
         return GoalPlanEntry(
             date: now,
             quarterName: plan.quarter,
             currentWeek: week,
             weekPct: Scoring.weekPct(plan: plan, week: week),
             quarterPct: Scoring.quarterPct(plan: plan),
-            streak: Streaks.weeklyStreak(plan: plan)
+            streak: Streaks.weeklyStreak(plan: plan),
+            behindHabits: behind
         )
     }
 }
@@ -98,14 +127,17 @@ struct GoalPlanWidgetEntryView: View {
     var entry: GoalPlanEntry
 
     var body: some View {
-        switch family {
-        case .accessoryCircular:
-            CircularAccessoryView(entry: entry)
-        case .systemMedium:
-            MediumWidgetView(entry: entry)
-        default:
-            SmallWidgetView(entry: entry)
+        Group {
+            switch family {
+            case .accessoryCircular:
+                CircularAccessoryView(entry: entry)
+            case .systemMedium:
+                MediumWidgetView(entry: entry)
+            default:
+                SmallWidgetView(entry: entry)
+            }
         }
+        .widgetURL(URL(string: "goalplan://today"))
     }
 }
 
@@ -176,26 +208,47 @@ struct MediumWidgetView: View {
             .frame(maxHeight: .infinity)
 
             VStack(alignment: .leading, spacing: 6) {
-                Text(entry.quarterName)
-                    .font(.headline)
-
-                HStack(spacing: 4) {
-                    Image(systemName: "chart.bar.fill")
-                        .font(.caption)
-                        .foregroundStyle(Color.brandGreen)
-                    Text("Quarter avg: \(Scoring.formatPct(entry.quarterPct))")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                if entry.streak > 0 {
-                    HStack(spacing: 4) {
+                HStack {
+                    Text(entry.quarterName)
+                        .font(.headline)
+                    if entry.streak > 0 {
                         Image(systemName: "flame.fill")
                             .font(.caption)
                             .foregroundStyle(Color.brandGold)
-                        Text("\(entry.streak) week streak")
-                            .font(.subheadline)
+                        Text("\(entry.streak)")
+                            .font(.caption.bold())
                             .foregroundStyle(.secondary)
+                    }
+                }
+
+                if entry.behindHabits.isEmpty {
+                    Text("All targets met 🎉")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } else {
+                    // One-tap logging for the habits furthest behind
+                    ForEach(entry.behindHabits) { habit in
+                        HStack(spacing: 6) {
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text(habit.name)
+                                    .font(.caption.bold())
+                                    .lineLimit(1)
+                                Text("\(habit.done)/\(habit.target)")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer(minLength: 4)
+                            Button(intent: LogHabitIntent(habitId: habit.id)) {
+                                Text("+1")
+                                    .font(.caption.bold())
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 5)
+                                    .background(Color.brandGreen.opacity(0.15))
+                                    .foregroundStyle(Color.brandGreen)
+                                    .clipShape(Capsule())
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
                 }
             }

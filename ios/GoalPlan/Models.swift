@@ -178,4 +178,47 @@ extension Plan {
     func weekTotal(for habit: Habit, week: Int) -> Double? {
         scores[String(week)]?[habit.id]
     }
+
+    /// A copy of this plan with a daily log applied and the week's dailies
+    /// rolled up into the weekly total. A manually entered weekly value beyond
+    /// the previous daily sum is preserved as a baseline, so backfilled weeks
+    /// and daily taps combine instead of clobbering each other.
+    /// Pure so both the app (PlanStore) and the widget intent can use it.
+    func loggingDaily(habitId: String, value: Double?, date: Date = Date()) -> Plan {
+        var next = self
+        let dayKey = Scoring.dayKey(for: date)
+        let week = Scoring.currentWeekOfQuarter(now: date, maxWeek: next.weeksInQuarter)
+        let weekKeys = Scoring.dayKeys(inWeek: week, reference: date)
+        let weekKey = String(week)
+
+        // Manual baseline = existing weekly value minus what dailies accounted for
+        let oldSum = weekKeys.compactMap { next.dailyScores[$0]?[habitId] }.reduce(0, +)
+        let oldWeekly = next.scores[weekKey]?[habitId] ?? 0
+        let baseline = max(0, oldWeekly - oldSum)
+
+        // Write or remove the daily entry
+        if let value = value {
+            next.dailyScores[dayKey, default: [:]][habitId] = value
+        } else {
+            next.dailyScores[dayKey]?.removeValue(forKey: habitId)
+            if next.dailyScores[dayKey]?.isEmpty == true {
+                next.dailyScores.removeValue(forKey: dayKey)
+            }
+        }
+
+        // Roll up into the weekly total
+        let newSum = weekKeys.compactMap { next.dailyScores[$0]?[habitId] }.reduce(0, +)
+        let hasAnyDaily = weekKeys.contains { next.dailyScores[$0]?[habitId] != nil }
+
+        if hasAnyDaily || baseline > 0 {
+            next.scores[weekKey, default: [:]][habitId] = newSum + baseline
+        } else {
+            next.scores[weekKey]?.removeValue(forKey: habitId)
+            if next.scores[weekKey]?.isEmpty == true {
+                next.scores.removeValue(forKey: weekKey)
+            }
+        }
+
+        return next
+    }
 }

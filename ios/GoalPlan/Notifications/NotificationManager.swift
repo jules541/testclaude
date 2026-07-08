@@ -257,13 +257,26 @@ final class NotificationManager {
         content.body = getWeeklySummaryText()
         content.sound = .default
 
-        // Sunday at 6:00 PM
-        var dateComponents = DateComponents()
-        dateComponents.weekday = 1  // Sunday
-        dateComponents.hour = 18
+        // 8:00 PM on the last day of the current quarter week. Quarter weeks
+        // run 7 days from the quarter start, not calendar Sundays. Fires once;
+        // the next week's summary is scheduled when pending requests are
+        // rebuilt on plan saves and app foregrounds.
+        let calendar = Calendar.current
+        let maxWeek = SharedContainer.loadPlan()?.weeksInQuarter ?? 13
+        let weekEnd = Scoring.currentWeekEndDate(maxWeek: maxWeek)
+        var dateComponents = calendar.dateComponents([.year, .month, .day], from: weekEnd)
+        dateComponents.hour = 20
         dateComponents.minute = 0
 
-        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+        // If the week-end evening already passed, target the next week's end
+        if let fireDate = calendar.date(from: dateComponents), fireDate <= Date() {
+            guard let nextWeekEnd = calendar.date(byAdding: .day, value: 7, to: weekEnd) else { return }
+            dateComponents = calendar.dateComponents([.year, .month, .day], from: nextWeekEnd)
+            dateComponents.hour = 20
+            dateComponents.minute = 0
+        }
+
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
         let request = UNNotificationRequest(identifier: weeklySummaryID, content: content, trigger: trigger)
 
         center.add(request) { error in
@@ -288,12 +301,34 @@ final class NotificationManager {
         }
 
         let currentWeek = Scoring.currentWeekOfQuarter(maxWeek: plan.weeksInQuarter)
-        if let weekPct = Scoring.weekPct(plan: plan, week: currentWeek) {
-            let percentage = Int(weekPct * 100)
-            return "You achieved \(percentage)% of your goals this week!"
+        guard let weekPct = Scoring.weekPct(plan: plan, week: currentWeek) else {
+            return "Week \(currentWeek) wraps tonight — log your habits to close it out!"
         }
 
-        return "Review your progress and plan for next week!"
+        let pct = Int(round(weekPct * 100))
+        var summary = "Week \(currentWeek) wraps tonight: \(pct)%"
+
+        // Compare against last week, or crown a new personal best
+        let previousPct = currentWeek > 1
+            ? Scoring.weekPct(plan: plan, week: currentWeek - 1)
+            : nil
+
+        if let best = Streaks.bestWeek(plan: plan), best.week == currentWeek, currentWeek > 1 {
+            summary += " — your best week yet! 🏆"
+        } else if let previous = previousPct {
+            let prevPct = Int(round(previous * 100))
+            if pct > prevPct {
+                summary += " — up from \(prevPct)% last week 📈"
+            } else if pct < prevPct {
+                summary += " — down from \(prevPct)% last week. Next week's a fresh start."
+            } else {
+                summary += " — steady with last week."
+            }
+        } else {
+            summary += " — first week logged. Keep it going!"
+        }
+
+        return summary
     }
 
     // MARK: - Badge Management

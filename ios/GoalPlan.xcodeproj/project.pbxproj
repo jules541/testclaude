@@ -17,6 +17,7 @@
 		29C4FAA1817A5095CFBE3DC5 /* Streaks.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1DC2639C5274668B6FA2E5F /* Streaks.swift */; };
 		2A5A45DA728EB87279AB0A5B /* SharedContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD573D04873DFEEE6AA5C727 /* SharedContainer.swift */; };
 		2F5AF4FE5E3718601F0BBD98 /* ViewModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9ABF88F2650930E3A4C8BFE /* ViewModifiers.swift */; };
+		308195AFBD4EC9999257219C /* LogHabitIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EF02BA757F5C90A86440EBE /* LogHabitIntent.swift */; };
 		3143CF414251FC073441F94E /* PlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10FB198F833707E3D20B76B6 /* PlanView.swift */; };
 		32537EC06AEDDD6FCE023AB4 /* Streaks.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1DC2639C5274668B6FA2E5F /* Streaks.swift */; };
 		3DD8B4DC039EDE3793EDFD80 /* GoalPlanWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4EC21F73C79DA4D4A24A839 /* GoalPlanWidget.swift */; };
@@ -35,6 +36,7 @@
 		A2C0EEF66D16002160C845B6 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 819982DF0C10E10ECCDBC556 /* Models.swift */; };
 		A8F7535D3737E9920F8625A8 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC084B9CD3D4EC870EF9F560 /* AppTheme.swift */; };
 		A992A27B91C87EA7504BDF04 /* ScoringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73A3CE03E6349F61FCFA54E1 /* ScoringTests.swift */; };
+		B4E054B802B78B4E908CDEB3 /* QuickLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AA7002AB8E97297B733E8 /* QuickLogSheet.swift */; };
 		BA424FDAB43FF127533A57CA /* GoalPlanWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B9D2D562E8D8F78A36631764 /* GoalPlanWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		BF4F51862F8E449445BCBC93 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEDF120C1D5A7897791E63E4 /* DashboardView.swift */; };
 		CA3ECE246F9E5ED4C35238A7 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D8DCF58F054387055E80005 /* RootTabView.swift */; };
@@ -43,6 +45,8 @@
 		D70481ABCC6E2C71DD533E62 /* Animations.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43013B7F3DB469724C60082 /* Animations.swift */; };
 		DC12CDA4076645316240E54F /* Gradients.swift in Sources */ = {isa = PBXBuildFile; fileRef = 104A3494978633BEE066DAC2 /* Gradients.swift */; };
 		E72BEB203518D69ADC8AD463 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 183468CE74A3C587B6974AD5 /* NotificationManager.swift */; };
+		F806D55F0DE21F8687F6AA1E /* LogHabitIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EF02BA757F5C90A86440EBE /* LogHabitIntent.swift */; };
+		FCA498D5F0B29261EE131F37 /* WeekRemainingCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3509E820EDF431AB2BF5EE08 /* WeekRemainingCard.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,14 +85,17 @@
 		0AF6BF684933B16623B12FCD /* Scoring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scoring.swift; sourceTree = "<group>"; };
 		104A3494978633BEE066DAC2 /* Gradients.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gradients.swift; sourceTree = "<group>"; };
 		10FB198F833707E3D20B76B6 /* PlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanView.swift; sourceTree = "<group>"; };
+		110AA7002AB8E97297B733E8 /* QuickLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLogSheet.swift; sourceTree = "<group>"; };
 		140DF1BD36AF9CC00A69F78C /* TestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestSupport.swift; sourceTree = "<group>"; };
 		183468CE74A3C587B6974AD5 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		1D3AAAFA736A62A73B155BD4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		27987AF58992EC30EFE56AB9 /* GoalPlanWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GoalPlanWidget.entitlements; sourceTree = "<group>"; };
 		2842237125DA1B9C7BC6EF88 /* OnboardingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowView.swift; sourceTree = "<group>"; };
+		3509E820EDF431AB2BF5EE08 /* WeekRemainingCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekRemainingCard.swift; sourceTree = "<group>"; };
 		3CE20C0E990990879AA30FA6 /* GoalPlanApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalPlanApp.swift; sourceTree = "<group>"; };
 		559C1BB083F2AA1ABE442CCF /* OnboardingGoalSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingGoalSelectionView.swift; sourceTree = "<group>"; };
 		5D7DBCF9DA39A12D537A8D18 /* OnboardingHabitReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingHabitReviewView.swift; sourceTree = "<group>"; };
+		5EF02BA757F5C90A86440EBE /* LogHabitIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogHabitIntent.swift; sourceTree = "<group>"; };
 		66998DCD658B238CF9B89984 /* OnboardingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingManager.swift; sourceTree = "<group>"; };
 		6A636308D28B2CF1B38EA9F8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		6C2A5E7204A9B52301351971 /* StreaksTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreaksTests.swift; sourceTree = "<group>"; };
@@ -132,6 +139,8 @@
 			isa = PBXGroup;
 			children = (
 				C694C3A57A53A7A545EDA79E /* QuarterProgressView.swift */,
+				110AA7002AB8E97297B733E8 /* QuickLogSheet.swift */,
+				3509E820EDF431AB2BF5EE08 /* WeekRemainingCard.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -163,6 +172,7 @@
 				CF490AFD98347CE68DF00548 /* GoalPlan.entitlements */,
 				3CE20C0E990990879AA30FA6 /* GoalPlanApp.swift */,
 				6A636308D28B2CF1B38EA9F8 /* Info.plist */,
+				5EF02BA757F5C90A86440EBE /* LogHabitIntent.swift */,
 				819982DF0C10E10ECCDBC556 /* Models.swift */,
 				81FE82D3F9A35014E9043F03 /* PlanStore.swift */,
 				10FB198F833707E3D20B76B6 /* PlanView.swift */,
@@ -350,6 +360,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3DD8B4DC039EDE3793EDFD80 /* GoalPlanWidget.swift in Sources */,
+				F806D55F0DE21F8687F6AA1E /* LogHabitIntent.swift in Sources */,
 				A2C0EEF66D16002160C845B6 /* Models.swift in Sources */,
 				47DF990C917E1BE27A93A5A4 /* Scoring.swift in Sources */,
 				2672C85B88F6A05D93ABA2B1 /* SharedContainer.swift in Sources */,
@@ -367,6 +378,7 @@
 				00CEAE6091B70B9C224A6A97 /* GoalPlanApp.swift in Sources */,
 				597554A589931FD6072AEE7B /* GoalTemplates.swift in Sources */,
 				DC12CDA4076645316240E54F /* Gradients.swift in Sources */,
+				308195AFBD4EC9999257219C /* LogHabitIntent.swift in Sources */,
 				8A2F825FE18BA6F521D52CF1 /* Models.swift in Sources */,
 				E72BEB203518D69ADC8AD463 /* NotificationManager.swift in Sources */,
 				D1FEF0C5DE8C61D1E348C089 /* OnboardingFlowView.swift in Sources */,
@@ -379,6 +391,7 @@
 				3143CF414251FC073441F94E /* PlanView.swift in Sources */,
 				00B28874E40AF71E98DAEA28 /* ProgressView.swift in Sources */,
 				0DC8C78A2F2A4436F79B196E /* QuarterProgressView.swift in Sources */,
+				B4E054B802B78B4E908CDEB3 /* QuickLogSheet.swift in Sources */,
 				CA3ECE246F9E5ED4C35238A7 /* RootTabView.swift in Sources */,
 				45F6588B4EE67C1075CA664C /* Scoring.swift in Sources */,
 				CC9F96AB2A4EBE3A937D4F62 /* SettingsView.swift in Sources */,
@@ -386,6 +399,7 @@
 				32537EC06AEDDD6FCE023AB4 /* Streaks.swift in Sources */,
 				633256A6FF26C485B678FF8E /* TrackerView.swift in Sources */,
 				2F5AF4FE5E3718601F0BBD98 /* ViewModifiers.swift in Sources */,
+				FCA498D5F0B29261EE131F37 /* WeekRemainingCard.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

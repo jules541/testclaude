@@ -66,7 +66,7 @@ struct SettingsView: View {
                     Label {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Weekly Summary")
-                            Text("Sunday recap of your progress")
+                            Text("End-of-week recap of your progress")
                                 .font(AppTheme.Typography.caption)
                                 .foregroundColor(AppTheme.Colors.textSecondary)
                         }
