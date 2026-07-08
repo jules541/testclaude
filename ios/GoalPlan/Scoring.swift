@@ -117,35 +117,51 @@ enum Scoring {
     }
 
     /// Day keys ("yyyy-MM-dd") for the 7 days of a quarter week.
+    /// Week 1 starts at the calendar week containing the quarter start;
     /// `reference` picks which calendar quarter the week belongs to.
     static func dayKeys(inWeek week: Int, reference: Date = Date()) -> [String] {
         let calendar = Calendar.current
-        let quarterStart = quarterStartDate(now: reference)
+        let firstWeekStart = weekStart(of: quarterStartDate(now: reference))
         return (0..<7).compactMap { day in
-            calendar.date(byAdding: .day, value: (week - 1) * 7 + day, to: quarterStart)
+            calendar.date(byAdding: .day, value: (week - 1) * 7 + day, to: firstWeekStart)
                 .map { dayKey(for: $0) }
         }
     }
 
-    /// Days remaining in the current quarter week, counting today
+    /// Days remaining in the current calendar week, counting today
     /// (7 on the week's first day, 1 on its last)
     static func daysLeftInCurrentWeek(now: Date = Date()) -> Int {
         let calendar = Calendar.current
-        let quarterStart = quarterStartDate(now: now)
         let daysElapsed = calendar.dateComponents(
             [.day],
-            from: calendar.startOfDay(for: quarterStart),
+            from: weekStart(of: now),
             to: calendar.startOfDay(for: now)
         ).day ?? 0
-        return 7 - (daysElapsed % 7)
+        return 7 - min(max(daysElapsed, 0), 6)
     }
 
-    /// The last day of the current quarter week
+    /// The last day of the calendar week containing `now`
     static func currentWeekEndDate(now: Date = Date(), maxWeek: Int = 13) -> Date {
-        let calendar = Calendar.current
-        let week = currentWeekOfQuarter(now: now, maxWeek: maxWeek)
-        let quarterStart = quarterStartDate(now: now)
-        return calendar.date(byAdding: .day, value: (week - 1) * 7 + 6, to: quarterStart) ?? now
+        Calendar.current.date(byAdding: .day, value: 6, to: weekStart(of: now)) ?? now
+    }
+
+    /// How much of a habit to do today to stay on pace: the weekly remainder
+    /// spread over the days left, rounded up to a friendly unit step
+    /// (minutes → 5s, hours → 0.5s, counts → whole). Capped at the remainder;
+    /// nil once the weekly target is met.
+    static func suggestedToday(habit: Habit, weekTotal: Double?, now: Date = Date()) -> Double? {
+        let remaining = habit.target - (weekTotal ?? 0)
+        guard remaining > 0 else { return nil }
+
+        let spread = remaining / Double(daysLeftInCurrentWeek(now: now))
+        let step: Double
+        switch habit.unit {
+        case "minutes": step = 5
+        case "hours": step = 0.5
+        default: step = 1
+        }
+
+        return min((spread / step).rounded(.up) * step, remaining)
     }
 
     /// Get last 4 weeks of the quarter for month view
@@ -218,15 +234,23 @@ enum Scoring {
         return calendar.date(from: DateComponents(year: year, month: startMonth, day: 1)) ?? now
     }
 
-    /// Get current week number within the quarter, clamped to 1...maxWeek
-    /// Based on weeks elapsed since quarter start date
+    /// First day of the calendar week containing `date`
+    /// (respects the device locale's firstWeekday)
+    static func weekStart(of date: Date) -> Date {
+        Calendar.current.dateInterval(of: .weekOfYear, for: date)?.start ?? date
+    }
+
+    /// Get current week number within the quarter, clamped to 1...maxWeek.
+    /// Week 1 is the calendar week containing the quarter start, so week
+    /// boundaries match real calendar weeks (Sun/Mon per locale), not
+    /// 7-day blocks from the quarter's first day.
     static func currentWeekOfQuarter(now: Date = Date(), maxWeek: Int = 13) -> Int {
         let calendar = Calendar.current
-        let quarterStart = quarterStartDate(now: now)
+        let firstWeekStart = weekStart(of: quarterStartDate(now: now))
+        let currentWeekStart = weekStart(of: now)
 
-        // Calculate weeks elapsed
-        let components = calendar.dateComponents([.weekOfYear], from: quarterStart, to: now)
-        let weeksElapsed = (components.weekOfYear ?? 0) + 1  // +1 because week 1 starts immediately
+        let days = calendar.dateComponents([.day], from: firstWeekStart, to: currentWeekStart).day ?? 0
+        let weeksElapsed = days / 7 + 1
 
         return min(max(weeksElapsed, 1), maxWeek)
     }

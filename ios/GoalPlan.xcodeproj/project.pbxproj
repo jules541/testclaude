@@ -107,7 +107,7 @@
 		92D1FDFFA6D93B4672A767E1 /* ProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressView.swift; sourceTree = "<group>"; };
 		9D8DCF58F054387055E80005 /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
 		B4EC21F73C79DA4D4A24A839 /* GoalPlanWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalPlanWidget.swift; sourceTree = "<group>"; };
-		B9D2D562E8D8F78A36631764 /* GoalPlanWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = GoalPlanWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B9D2D562E8D8F78A36631764 /* GoalPlanWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = GoalPlanWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF89E87189D9A658C278D561 /* TrackerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerView.swift; sourceTree = "<group>"; };
 		C694C3A57A53A7A545EDA79E /* QuarterProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuarterProgressView.swift; sourceTree = "<group>"; };
 		CA2C8FF2C536C054AD08C9FD /* GoalTemplates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalTemplates.swift; sourceTree = "<group>"; };
@@ -120,7 +120,7 @@
 		E62DBBF0CC9E6BFAD89F4EDE /* GoalPlanTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = GoalPlanTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E9ABF88F2650930E3A4C8BFE /* ViewModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModifiers.swift; sourceTree = "<group>"; };
 		EEDF120C1D5A7897791E63E4 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
-		F09008BADD30F26A77296FB2 /* GoalPlan.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = GoalPlan.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F09008BADD30F26A77296FB2 /* GoalPlan.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GoalPlan.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F359F16AFA5900050C0C1671 /* OnboardingVisionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingVisionView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -311,13 +311,7 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
-					4A7D03F4CA827C6046124B14 = {
-						DevelopmentTeam = "";
-					};
 					50B4A39696243D2E94DB053F = {
-						DevelopmentTeam = "";
-					};
-					5758CDC386C98AE18A3612A8 = {
 						DevelopmentTeam = "";
 					};
 				};
@@ -500,6 +494,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = GoalPlanWidget/GoalPlanWidget.entitlements;
+				DEVELOPMENT_TEAM = 77S4VUFXBU;
 				INFOPLIST_FILE = GoalPlanWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -555,6 +550,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = GoalPlanWidget/GoalPlanWidget.entitlements;
+				DEVELOPMENT_TEAM = 77S4VUFXBU;
 				INFOPLIST_FILE = GoalPlanWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -575,6 +571,7 @@
 				CODE_SIGN_ENTITLEMENTS = GoalPlan/GoalPlan.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_ASSET_PATHS = "\"GoalPlan/Preview Content\"";
+				DEVELOPMENT_TEAM = 77S4VUFXBU;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = GoalPlan/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -652,6 +649,7 @@
 				CODE_SIGN_ENTITLEMENTS = GoalPlan/GoalPlan.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_ASSET_PATHS = "\"GoalPlan/Preview Content\"";
+				DEVELOPMENT_TEAM = 77S4VUFXBU;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = GoalPlan/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;

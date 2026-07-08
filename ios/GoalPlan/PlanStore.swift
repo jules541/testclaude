@@ -37,6 +37,74 @@ final class PlanStore {
         }
 
         rollOverIfNeeded()
+        resyncWeeklyTotalsIfNeeded()
+        refreshFocusForToday()
+    }
+
+    // MARK: - Week Model Migration
+
+    /// One-time fix-up after weeks changed from quarter-start-anchored blocks
+    /// to calendar weeks: weekly totals rolled up under the old mapping can sit
+    /// in the wrong week (e.g. a Tuesday log filed one week behind). For every
+    /// habit that has daily logs, recompute each week's total from the dailies
+    /// under the new mapping. Manual-only weekly entries are left untouched.
+    private func resyncWeeklyTotalsIfNeeded() {
+        let flag = "weekModelV2Resynced"
+        guard !UserDefaults.standard.bool(forKey: flag) else { return }
+        UserDefaults.standard.set(true, forKey: flag)
+        plan = Self.resyncWeeklyTotals(plan)
+    }
+
+    /// Pure core of the migration, separated for testability
+    static func resyncWeeklyTotals(_ plan: Plan, reference: Date = Date()) -> Plan {
+        let habitsWithDailies = Set(plan.dailyScores.values.flatMap { $0.keys })
+        guard !habitsWithDailies.isEmpty else { return plan }
+
+        var next = plan
+        for habitId in habitsWithDailies {
+            for week in 1...next.weeksInQuarter {
+                let weekKey = String(week)
+                let sum = Scoring.dayKeys(inWeek: week, reference: reference)
+                    .compactMap { next.dailyScores[$0]?[habitId] }
+                    .reduce(0, +)
+
+                if sum > 0 {
+                    next.scores[weekKey, default: [:]][habitId] = sum
+                } else if next.scores[weekKey]?[habitId] != nil {
+                    // Old roll-up left a value here but no dailies map to this
+                    // week anymore — drop it so it doesn't double-count
+                    next.scores[weekKey]?.removeValue(forKey: habitId)
+                    if next.scores[weekKey]?.isEmpty == true {
+                        next.scores.removeValue(forKey: weekKey)
+                    }
+                }
+            }
+        }
+        return next
+    }
+
+    // MARK: - Today's Focus
+
+    /// Habit ids the user chose to focus on today (per-day, device-local)
+    private(set) var todayFocusIds: [String] = []
+    private var focusDayKey = ""
+
+    /// Reload the focus list when the day changes (call on appear/foreground)
+    func refreshFocusForToday(now: Date = Date()) {
+        let dayKey = Scoring.dayKey(for: now)
+        guard dayKey != focusDayKey else { return }
+        focusDayKey = dayKey
+        todayFocusIds = UserDefaults.standard.stringArray(forKey: "focusHabits-\(dayKey)") ?? []
+    }
+
+    func toggleFocus(habitId: String, now: Date = Date()) {
+        refreshFocusForToday(now: now)
+        if let index = todayFocusIds.firstIndex(of: habitId) {
+            todayFocusIds.remove(at: index)
+        } else {
+            todayFocusIds.append(habitId)
+        }
+        UserDefaults.standard.set(todayFocusIds, forKey: "focusHabits-\(focusDayKey)")
     }
 
     // MARK: - Quarter Rollover

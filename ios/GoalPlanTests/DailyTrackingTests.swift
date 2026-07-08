@@ -134,31 +134,153 @@ struct LogDailyTests {
 
 // MARK: - Week Boundaries and Pure Logging
 
-@Suite("Week boundary helpers")
+@Suite("Week boundary helpers (calendar weeks)")
 struct WeekBoundaryTests {
 
-    @Test("daysLeftInCurrentWeek is 7 on the week's first day and 1 on its last")
+    private let calendar = Calendar.current
+
+    @Test("daysLeftInCurrentWeek is 7 on the calendar week's first day and 1 on its last")
     func daysLeftBounds() {
-        #expect(Scoring.daysLeftInCurrentWeek(now: dayIntoQuarter(0)) == 7)
-        #expect(Scoring.daysLeftInCurrentWeek(now: dayIntoQuarter(6)) == 1)
-        #expect(Scoring.daysLeftInCurrentWeek(now: dayIntoQuarter(7)) == 7)  // week 2 starts
+        let weekStart = Scoring.weekStart(of: makeDate(2026, 7, 8))
+        let weekLast = calendar.date(byAdding: .day, value: 6, to: weekStart)!
+        let nextWeek = calendar.date(byAdding: .day, value: 7, to: weekStart)!
+
+        #expect(Scoring.daysLeftInCurrentWeek(now: weekStart) == 7)
+        #expect(Scoring.daysLeftInCurrentWeek(now: weekLast) == 1)
+        #expect(Scoring.daysLeftInCurrentWeek(now: nextWeek) == 7)
     }
 
-    @Test("currentWeekEndDate is the 7th day of the current quarter week")
+    @Test("currentWeekEndDate is the last day of the calendar week")
     func weekEndDate() {
-        let end = Scoring.currentWeekEndDate(now: dayIntoQuarter(0))
-        #expect(Scoring.dayKey(for: end) == Scoring.dayKey(for: dayIntoQuarter(6)))
+        let anyDay = makeDate(2026, 7, 8)
+        let weekStart = Scoring.weekStart(of: anyDay)
+        let expected = calendar.date(byAdding: .day, value: 6, to: weekStart)!
 
-        let week2End = Scoring.currentWeekEndDate(now: dayIntoQuarter(8))
-        #expect(Scoring.dayKey(for: week2End) == Scoring.dayKey(for: dayIntoQuarter(13)))
+        #expect(Scoring.dayKey(for: Scoring.currentWeekEndDate(now: anyDay)) == Scoring.dayKey(for: expected))
+        // Same answer anywhere in the same week
+        #expect(Scoring.dayKey(for: Scoring.currentWeekEndDate(now: weekStart)) == Scoring.dayKey(for: expected))
     }
 
-    @Test("dayKeys(inWeek:) covers exactly the week's 7 days")
+    @Test("dayKeys(inWeek:) covers the calendar week's 7 days")
     func dayKeysSpan() {
-        let keys = Scoring.dayKeys(inWeek: 2, reference: dayIntoQuarter(0))
+        let reference = makeDate(2026, 7, 8)
+        let firstWeekStart = Scoring.weekStart(of: Scoring.quarterStartDate(now: reference))
+        let week2Start = calendar.date(byAdding: .day, value: 7, to: firstWeekStart)!
+        let week2Last = calendar.date(byAdding: .day, value: 13, to: firstWeekStart)!
+
+        let keys = Scoring.dayKeys(inWeek: 2, reference: reference)
         #expect(keys.count == 7)
-        #expect(keys.first == Scoring.dayKey(for: dayIntoQuarter(7)))
-        #expect(keys.last == Scoring.dayKey(for: dayIntoQuarter(13)))
+        #expect(keys.first == Scoring.dayKey(for: week2Start))
+        #expect(keys.last == Scoring.dayKey(for: week2Last))
+    }
+
+    @Test("a date and its calendar-week sibling report the same quarter week")
+    func siblingDaysShareWeek() {
+        // The bug: Tue Jul 7 and Wed Jul 8 2026 fell into different quarter
+        // weeks under quarter-start anchoring; calendar weeks keep them together
+        let tuesday = makeDate(2026, 7, 7)
+        let wednesday = makeDate(2026, 7, 8)
+        if Scoring.weekStart(of: tuesday) == Scoring.weekStart(of: wednesday) {
+            #expect(
+                Scoring.currentWeekOfQuarter(now: tuesday) == Scoring.currentWeekOfQuarter(now: wednesday)
+            )
+        }
+    }
+}
+
+@Suite("Suggested daily amounts")
+struct SuggestedTodayTests {
+
+    @Test("spreads the remainder over days left, rounded up per unit")
+    func spreadsAndRounds() {
+        let weekStart = Scoring.weekStart(of: makeDate(2026, 7, 8))
+        // 2 days left → day 6 of the week
+        let day = Calendar.current.date(byAdding: .day, value: 5, to: weekStart)!
+        #expect(Scoring.daysLeftInCurrentWeek(now: day) == 2)
+
+        // Reading: 22 min remaining / 2 days = 11 → rounds up to 15
+        let reading = Habit(id: "r", name: "Reading", unit: "minutes", target: 30)
+        #expect(Scoring.suggestedToday(habit: reading, weekTotal: 8, now: day) == 15)
+
+        // Creative: 1.2 hr remaining / 2 days = 0.6 → rounds up to 1.0
+        let creative = Habit(id: "c", name: "Creative", unit: "hours", target: 2)
+        #expect(Scoring.suggestedToday(habit: creative, weekTotal: 0.8, now: day) == 1.0)
+
+        // Workout: 3 remaining / 2 days = 1.5 → rounds up to 2
+        let workout = Habit(id: "w", name: "Workout", unit: "days", target: 7)
+        #expect(Scoring.suggestedToday(habit: workout, weekTotal: 4, now: day) == 2)
+    }
+
+    @Test("never suggests more than the remainder")
+    func cappedAtRemainder() {
+        let weekStart = Scoring.weekStart(of: makeDate(2026, 7, 8))
+        let lastDay = Calendar.current.date(byAdding: .day, value: 6, to: weekStart)!
+
+        // 3 min remaining on the last day: step-rounds to 5, capped at 3
+        let reading = Habit(id: "r", name: "Reading", unit: "minutes", target: 30)
+        #expect(Scoring.suggestedToday(habit: reading, weekTotal: 27, now: lastDay) == 3)
+    }
+
+    @Test("nil once the weekly target is met")
+    func nilWhenDone() {
+        let habit = Habit(id: "w", name: "Workout", unit: "days", target: 7)
+        #expect(Scoring.suggestedToday(habit: habit, weekTotal: 7) == nil)
+        #expect(Scoring.suggestedToday(habit: habit, weekTotal: 9) == nil)
+    }
+}
+
+@Suite("Weekly totals resync migration")
+struct ResyncTests {
+
+    @Test("weekly totals move to the weeks the dailies now map to")
+    func resyncMovesTotals() {
+        let reference = makeDate(2026, 7, 8)
+        let firstWeekStart = Scoring.weekStart(of: Scoring.quarterStartDate(now: reference))
+        let week2Day = Calendar.current.date(byAdding: .day, value: 8, to: firstWeekStart)!
+
+        // Old mapping filed this daily log's total under week 1
+        let plan = makePlan(
+            scores: ["1": ["creative": 2]],
+            dailyScores: [Scoring.dayKey(for: week2Day): ["creative": 2]]
+        )
+
+        let synced = PlanStore.resyncWeeklyTotals(plan, reference: reference)
+        #expect(synced.scores["1"]?["creative"] == nil)
+        #expect(synced.scores["2"]?["creative"] == 2)
+    }
+
+    @Test("manual-only weekly entries are untouched")
+    func manualEntriesSurvive() {
+        // workout has a manual weekly value and no dailies anywhere
+        let plan = makePlan(
+            scores: ["3": ["workout": 5]],
+            dailyScores: ["2026-07-08": ["reading": 10]]
+        )
+        let synced = PlanStore.resyncWeeklyTotals(plan, reference: makeDate(2026, 7, 8))
+        #expect(synced.scores["3"]?["workout"] == 5)
+    }
+}
+
+@Suite("Today's focus selection", .serialized)
+struct FocusToggleTests {
+
+    @Test("toggle adds then removes a habit for the given day")
+    func toggleRoundTrip() {
+        let testDay = makeDate(1999, 1, 5)  // synthetic day so real data is untouched
+        let key = "focusHabits-\(Scoring.dayKey(for: testDay))"
+        UserDefaults.standard.removeObject(forKey: key)
+        defer { UserDefaults.standard.removeObject(forKey: key) }
+
+        let store = PlanStore()
+        store.refreshFocusForToday(now: testDay)
+        #expect(store.todayFocusIds.isEmpty)
+
+        store.toggleFocus(habitId: "workout", now: testDay)
+        #expect(store.todayFocusIds == ["workout"])
+        #expect(UserDefaults.standard.stringArray(forKey: key) == ["workout"])
+
+        store.toggleFocus(habitId: "workout", now: testDay)
+        #expect(store.todayFocusIds.isEmpty)
     }
 }
 

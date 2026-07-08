@@ -14,6 +14,17 @@ struct DashboardView: View {
         Scoring.currentWeekOfQuarter(maxWeek: store.plan.weeksInQuarter)
     }
 
+    /// Focused habits when a focus is set; otherwise every habit still
+    /// behind its weekly target (completed ones drop off)
+    private var todayHabits: [Habit] {
+        if store.todayFocusIds.isEmpty {
+            return store.plan.allHabits.filter { habit in
+                (store.plan.weekTotal(for: habit, week: currentWeek) ?? 0) < habit.target
+            }
+        }
+        return store.plan.allHabits.filter { store.todayFocusIds.contains($0.id) }
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: AppTheme.Spacing.xxl) {
@@ -23,7 +34,8 @@ struct DashboardView: View {
                 // Quarter + Year Progress Header
                 QuarterProgressView(store: store)
 
-                // Today's Goals Section
+                // Today's Goals Section — focused habits, or all behind
+                // habits until a focus is chosen
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
                     HStack {
                         Image(systemName: "target")
@@ -32,7 +44,13 @@ struct DashboardView: View {
                             .sectionHeaderStyle()
                     }
 
-                    ForEach(store.plan.allHabits) { habit in
+                    if store.todayFocusIds.isEmpty {
+                        Text("Tap habits above to set today's focus")
+                            .font(AppTheme.Typography.caption)
+                            .foregroundColor(AppTheme.Colors.textMuted)
+                    }
+
+                    ForEach(todayHabits) { habit in
                         TodayGoalRow(
                             habit: habit,
                             todayValue: store.plan.todayContribution(for: habit),
@@ -49,6 +67,9 @@ struct DashboardView: View {
         }
         .background(AppTheme.Colors.background)
         .navigationTitle("Dashboard")
+        .onAppear {
+            store.refreshFocusForToday()
+        }
         .sheet(item: $quickLogHabit) { habit in
             QuickLogSheet(habit: habit, store: store)
         }
@@ -99,6 +120,18 @@ struct TodayGoalRow: View {
         return "+\(display) today"
     }
 
+    /// On-pace dose for today, e.g. "Do ~30 min today"
+    private var suggestionText: String? {
+        guard let suggested = Scoring.suggestedToday(habit: habit, weekTotal: weekValue) else { return nil }
+        let amount = suggested.truncatingRemainder(dividingBy: 1) == 0
+            ? String(Int(suggested)) : String(suggested)
+        switch habit.unit {
+        case "minutes": return "Do ~\(amount) min today"
+        case "hours": return "Do ~\(amount) hr today"
+        default: return "Do \(amount) today"
+        }
+    }
+
     var body: some View {
         HStack(spacing: AppTheme.Spacing.md) {
             // Weekly completion indicator
@@ -122,6 +155,12 @@ struct TodayGoalRow: View {
                             .bold()
                             .foregroundColor(AppTheme.Colors.primary)
                     }
+                }
+                if let suggestionText {
+                    Text(suggestionText)
+                        .font(AppTheme.Typography.caption)
+                        .bold()
+                        .foregroundColor(AppTheme.Colors.accent)
                 }
             }
 

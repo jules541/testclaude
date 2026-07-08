@@ -113,15 +113,21 @@ struct QuarterDateTests {
         #expect(result.year == 2026)
     }
 
-    @Test("currentWeekOfQuarter starts at week 1 on quarter start")
+    @Test("currentWeekOfQuarter is 1 throughout the quarter's first calendar week")
     func weekOneAtQuarterStart() {
-        #expect(Scoring.currentWeekOfQuarter(now: makeDate(2026, 7, 1)) == 1)
-        #expect(Scoring.currentWeekOfQuarter(now: makeDate(2026, 7, 7)) == 1)
+        let quarterStart = makeDate(2026, 7, 1)
+        #expect(Scoring.currentWeekOfQuarter(now: quarterStart) == 1)
+        // The last day of that same calendar week is still week 1
+        let weekEnd = Scoring.currentWeekEndDate(now: quarterStart)
+        #expect(Scoring.currentWeekOfQuarter(now: weekEnd) == 1)
     }
 
-    @Test("currentWeekOfQuarter advances after 7 days")
-    func weekTwoAfterSevenDays() {
-        #expect(Scoring.currentWeekOfQuarter(now: makeDate(2026, 7, 8)) == 2)
+    @Test("currentWeekOfQuarter increments at the calendar week boundary")
+    func weekTwoAfterBoundary() {
+        let quarterStart = makeDate(2026, 7, 1)
+        let weekEnd = Scoring.currentWeekEndDate(now: quarterStart)
+        let nextWeekDay = Calendar.current.date(byAdding: .day, value: 1, to: weekEnd)!
+        #expect(Scoring.currentWeekOfQuarter(now: nextWeekDay) == 2)
     }
 
     @Test("currentWeekOfQuarter clamps to 13 at quarter end")
