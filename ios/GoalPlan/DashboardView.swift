@@ -4,61 +4,56 @@ struct DashboardView: View {
     @Environment(PlanStore.self) private var store
     @State private var quickLogHabit: Habit?
 
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM d"
-        return formatter
-    }
-
     private var currentWeek: Int {
         Scoring.currentWeekOfQuarter(maxWeek: store.plan.weeksInQuarter)
     }
 
-    /// Focused habits when a focus is set; otherwise every habit still
-    /// behind its weekly target (completed ones drop off)
-    private var todayHabits: [Habit] {
-        if store.todayFocusIds.isEmpty {
-            return store.plan.allHabits.filter { habit in
-                (store.plan.weekTotal(for: habit, week: currentWeek) ?? 0) < habit.target
-            }
+    /// All habits, focused ones first (in focus order), then behind habits
+    /// in plan order, completed habits last.
+    private var sortedHabits: [Habit] {
+        let focusOrder = store.todayFocusIds
+        let all = store.plan.allHabits
+
+        func isComplete(_ habit: Habit) -> Bool {
+            (store.plan.weekTotal(for: habit, week: currentWeek) ?? 0) >= habit.target
         }
-        return store.plan.allHabits.filter { store.todayFocusIds.contains($0.id) }
+
+        let focused = focusOrder.compactMap { id in all.first { $0.id == id } }
+        let focusedIds = Set(focusOrder)
+        let remaining = all.filter { !focusedIds.contains($0.id) }
+        let behind = remaining.filter { !isComplete($0) }
+        let completed = remaining.filter { isComplete($0) }
+
+        return focused + behind + completed
     }
 
     var body: some View {
         ScrollView {
-            VStack(spacing: AppTheme.Spacing.xxl) {
-                // What's left to hit this week's targets
-                WeekRemainingCard(store: store)
+            VStack(spacing: AppTheme.Spacing.lg) {
+                TodayHeaderCard(store: store)
 
-                // Quarter + Year Progress Header
-                QuarterProgressView(store: store)
-
-                // Today's Goals Section — focused habits, or all behind
-                // habits until a focus is chosen
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
                     HStack {
                         Image(systemName: "target")
                             .foregroundColor(AppTheme.Colors.primary)
-                        Text("Your Goals Today")
+                        Text("Today")
                             .sectionHeaderStyle()
                     }
 
-                    if store.todayFocusIds.isEmpty {
-                        Text("Tap habits above to set today's focus")
-                            .font(AppTheme.Typography.caption)
-                            .foregroundColor(AppTheme.Colors.textMuted)
-                    }
-
-                    ForEach(todayHabits) { habit in
+                    ForEach(sortedHabits) { habit in
                         TodayGoalRow(
                             habit: habit,
                             todayValue: store.plan.todayContribution(for: habit),
                             weekValue: store.plan.weekTotal(for: habit, week: currentWeek),
+                            isFocused: store.todayFocusIds.contains(habit.id),
                             store: store,
                             onLongPress: { quickLogHabit = habit }
                         )
                     }
+
+                    Text("tap = +1 · hold = enter amount · ★ = today's focus")
+                        .font(AppTheme.Typography.caption)
+                        .foregroundColor(AppTheme.Colors.textMuted)
                 }
                 .padding(AppTheme.Spacing.xl)
                 .cardStyle()
@@ -80,6 +75,7 @@ struct TodayGoalRow: View {
     let habit: Habit
     let todayValue: Double?
     let weekValue: Double?
+    let isFocused: Bool
     @Bindable var store: PlanStore
     var onLongPress: () -> Void = {}
 
@@ -122,18 +118,29 @@ struct TodayGoalRow: View {
 
     /// On-pace dose for today, e.g. "Do ~30 min today"
     private var suggestionText: String? {
+        guard !isWeekComplete else { return nil }
         guard let suggested = Scoring.suggestedToday(habit: habit, weekTotal: weekValue) else { return nil }
         let amount = suggested.truncatingRemainder(dividingBy: 1) == 0
             ? String(Int(suggested)) : String(suggested)
         switch habit.unit {
-        case "minutes": return "Do ~\(amount) min today"
-        case "hours": return "Do ~\(amount) hr today"
-        default: return "Do \(amount) today"
+        case "minutes": return "~\(amount) min today"
+        case "hours": return "~\(amount) hr today"
+        default: return "~\(amount) today"
         }
     }
 
     var body: some View {
         HStack(spacing: AppTheme.Spacing.md) {
+            // Focus star — independent tap target from the row itself
+            Button {
+                store.toggleFocus(habitId: habit.id)
+            } label: {
+                Image(systemName: isFocused ? "star.fill" : "star")
+                    .foregroundColor(isFocused ? AppTheme.Colors.accent : AppTheme.Colors.textMuted)
+                    .font(.body)
+            }
+            .buttonStyle(.plain)
+
             // Weekly completion indicator
             Image(systemName: isWeekComplete ? "checkmark.circle.fill" : "circle")
                 .foregroundColor(isWeekComplete ? AppTheme.Colors.scoreFull : AppTheme.Colors.textMuted)
@@ -144,7 +151,7 @@ struct TodayGoalRow: View {
                 Text(habit.name)
                     .font(AppTheme.Typography.body)
                     .bold()
-                    .foregroundColor(AppTheme.Colors.textPrimary)
+                    .foregroundColor(isWeekComplete ? AppTheme.Colors.textMuted : AppTheme.Colors.textPrimary)
                 HStack(spacing: AppTheme.Spacing.sm) {
                     Text(weekText)
                         .font(AppTheme.Typography.caption)
@@ -155,12 +162,12 @@ struct TodayGoalRow: View {
                             .bold()
                             .foregroundColor(AppTheme.Colors.primary)
                     }
-                }
-                if let suggestionText {
-                    Text(suggestionText)
-                        .font(AppTheme.Typography.caption)
-                        .bold()
-                        .foregroundColor(AppTheme.Colors.accent)
+                    if let suggestionText {
+                        Text("· \(suggestionText)")
+                            .font(AppTheme.Typography.caption)
+                            .bold()
+                            .foregroundColor(AppTheme.Colors.accent)
+                    }
                 }
             }
 
@@ -179,8 +186,10 @@ struct TodayGoalRow: View {
             RoundedRectangle(cornerRadius: AppTheme.Radius.small)
                 .stroke(AppTheme.Colors.border, lineWidth: 1)
         )
+        .opacity(isWeekComplete ? 0.6 : 1.0)
         .scaleEffect(isPressed ? 0.98 : 1.0)
         .animation(.easeInOut(duration: 0.15), value: isPressed)
+        .contentShape(Rectangle())
         .onTapGesture {
             isPressed = true
             toggleCompletion()

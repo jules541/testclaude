@@ -23,6 +23,7 @@
 		3DD8B4DC039EDE3793EDFD80 /* GoalPlanWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4EC21F73C79DA4D4A24A839 /* GoalPlanWidget.swift */; };
 		45F6588B4EE67C1075CA664C /* Scoring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AF6BF684933B16623B12FCD /* Scoring.swift */; };
 		47DF990C917E1BE27A93A5A4 /* Scoring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AF6BF684933B16623B12FCD /* Scoring.swift */; };
+		5810504115BA3EB4B484EE6F /* TodayHeaderCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B03E9E312C6681159CFDF26F /* TodayHeaderCard.swift */; };
 		597554A589931FD6072AEE7B /* GoalTemplates.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2C8FF2C536C054AD08C9FD /* GoalTemplates.swift */; };
 		61386D7328965565D216E961 /* OnboardingGoalSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559C1BB083F2AA1ABE442CCF /* OnboardingGoalSelectionView.swift */; };
 		633256A6FF26C485B678FF8E /* TrackerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF89E87189D9A658C278D561 /* TrackerView.swift */; };
@@ -46,7 +47,6 @@
 		DC12CDA4076645316240E54F /* Gradients.swift in Sources */ = {isa = PBXBuildFile; fileRef = 104A3494978633BEE066DAC2 /* Gradients.swift */; };
 		E72BEB203518D69ADC8AD463 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 183468CE74A3C587B6974AD5 /* NotificationManager.swift */; };
 		F806D55F0DE21F8687F6AA1E /* LogHabitIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EF02BA757F5C90A86440EBE /* LogHabitIntent.swift */; };
-		FCA498D5F0B29261EE131F37 /* WeekRemainingCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3509E820EDF431AB2BF5EE08 /* WeekRemainingCard.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -91,7 +91,6 @@
 		1D3AAAFA736A62A73B155BD4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		27987AF58992EC30EFE56AB9 /* GoalPlanWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GoalPlanWidget.entitlements; sourceTree = "<group>"; };
 		2842237125DA1B9C7BC6EF88 /* OnboardingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowView.swift; sourceTree = "<group>"; };
-		3509E820EDF431AB2BF5EE08 /* WeekRemainingCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekRemainingCard.swift; sourceTree = "<group>"; };
 		3CE20C0E990990879AA30FA6 /* GoalPlanApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalPlanApp.swift; sourceTree = "<group>"; };
 		559C1BB083F2AA1ABE442CCF /* OnboardingGoalSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingGoalSelectionView.swift; sourceTree = "<group>"; };
 		5D7DBCF9DA39A12D537A8D18 /* OnboardingHabitReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingHabitReviewView.swift; sourceTree = "<group>"; };
@@ -106,8 +105,9 @@
 		81FE82D3F9A35014E9043F03 /* PlanStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanStore.swift; sourceTree = "<group>"; };
 		92D1FDFFA6D93B4672A767E1 /* ProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressView.swift; sourceTree = "<group>"; };
 		9D8DCF58F054387055E80005 /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
+		B03E9E312C6681159CFDF26F /* TodayHeaderCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayHeaderCard.swift; sourceTree = "<group>"; };
 		B4EC21F73C79DA4D4A24A839 /* GoalPlanWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalPlanWidget.swift; sourceTree = "<group>"; };
-		B9D2D562E8D8F78A36631764 /* GoalPlanWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = GoalPlanWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B9D2D562E8D8F78A36631764 /* GoalPlanWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = GoalPlanWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF89E87189D9A658C278D561 /* TrackerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerView.swift; sourceTree = "<group>"; };
 		C694C3A57A53A7A545EDA79E /* QuarterProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuarterProgressView.swift; sourceTree = "<group>"; };
 		CA2C8FF2C536C054AD08C9FD /* GoalTemplates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalTemplates.swift; sourceTree = "<group>"; };
@@ -120,7 +120,7 @@
 		E62DBBF0CC9E6BFAD89F4EDE /* GoalPlanTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = GoalPlanTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E9ABF88F2650930E3A4C8BFE /* ViewModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModifiers.swift; sourceTree = "<group>"; };
 		EEDF120C1D5A7897791E63E4 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
-		F09008BADD30F26A77296FB2 /* GoalPlan.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GoalPlan.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F09008BADD30F26A77296FB2 /* GoalPlan.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = GoalPlan.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F359F16AFA5900050C0C1671 /* OnboardingVisionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingVisionView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -140,7 +140,7 @@
 			children = (
 				C694C3A57A53A7A545EDA79E /* QuarterProgressView.swift */,
 				110AA7002AB8E97297B733E8 /* QuickLogSheet.swift */,
-				3509E820EDF431AB2BF5EE08 /* WeekRemainingCard.swift */,
+				B03E9E312C6681159CFDF26F /* TodayHeaderCard.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -311,7 +311,13 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					4A7D03F4CA827C6046124B14 = {
+						DevelopmentTeam = "";
+					};
 					50B4A39696243D2E94DB053F = {
+						DevelopmentTeam = "";
+					};
+					5758CDC386C98AE18A3612A8 = {
 						DevelopmentTeam = "";
 					};
 				};
@@ -391,9 +397,9 @@
 				CC9F96AB2A4EBE3A937D4F62 /* SettingsView.swift in Sources */,
 				2A5A45DA728EB87279AB0A5B /* SharedContainer.swift in Sources */,
 				32537EC06AEDDD6FCE023AB4 /* Streaks.swift in Sources */,
+				5810504115BA3EB4B484EE6F /* TodayHeaderCard.swift in Sources */,
 				633256A6FF26C485B678FF8E /* TrackerView.swift in Sources */,
 				2F5AF4FE5E3718601F0BBD98 /* ViewModifiers.swift in Sources */,
-				FCA498D5F0B29261EE131F37 /* WeekRemainingCard.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -494,7 +500,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = GoalPlanWidget/GoalPlanWidget.entitlements;
-				DEVELOPMENT_TEAM = 77S4VUFXBU;
 				INFOPLIST_FILE = GoalPlanWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -550,7 +555,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = GoalPlanWidget/GoalPlanWidget.entitlements;
-				DEVELOPMENT_TEAM = 77S4VUFXBU;
 				INFOPLIST_FILE = GoalPlanWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -571,7 +575,6 @@
 				CODE_SIGN_ENTITLEMENTS = GoalPlan/GoalPlan.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_ASSET_PATHS = "\"GoalPlan/Preview Content\"";
-				DEVELOPMENT_TEAM = 77S4VUFXBU;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = GoalPlan/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -649,7 +652,6 @@
 				CODE_SIGN_ENTITLEMENTS = GoalPlan/GoalPlan.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_ASSET_PATHS = "\"GoalPlan/Preview Content\"";
-				DEVELOPMENT_TEAM = 77S4VUFXBU;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = GoalPlan/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;

@@ -13,6 +13,10 @@ struct ProgressView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: AppTheme.Spacing.xxl) {
+                // Quarter + Year Progress (moved here from Dashboard to keep
+                // the home screen focused on today)
+                QuarterProgressView(store: store)
+
                 // View Mode Toggle
                 Picker("View Mode", selection: $viewMode) {
                     ForEach(ProgressViewMode.allCases, id: \.self) { mode in
